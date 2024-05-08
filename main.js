@@ -55,6 +55,13 @@ function ui(divID) {
                     <label for="data-url" class="block font-medium text-white">URL</label>
                     <input type="url" id="data-url" name="data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
+                <!-- reset and submit buttons -->
+                <div class="py-2 mt-2">
+                    <div class="flex justify-center gap-2">
+                        <button id="reset-data" class="rounded-md border border-white bg-red-800 text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
+                        <button id="submit-data" class="rounded-md border border-white bg-gray-800 text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Submit</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -135,3 +142,96 @@ function ui(divID) {
 
 
 ui('app');
+
+// Load data
+const dataUpload = document.getElementById('data-upload');
+const dataUrl = document.getElementById('data-url');
+const submitDataBtn = document.getElementById('submit-data');
+const resetDataBtn = document.getElementById('reset-data');
+
+let jsonData;
+
+const parseJsonFile = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                resolve(data);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.readAsText(file);
+    });
+};
+
+
+const fetchJsonData = async (url) => {
+    try {
+        const response = await fetch(url);
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+const updateAppUrl = (url) => {
+    const newUrl = `${window.location.origin}${window.location.pathname}?dataUrl=${encodeURIComponent(url)}`;
+    window.history.replaceState(null, '', newUrl);
+};
+
+
+// Data submit
+submitDataBtn.addEventListener('click', async () => {
+    if (dataUpload.files.length > 0) {
+        try {
+            jsonData = await parseJsonFile(dataUpload.files[0]);
+            console.log('JSON data from file:', jsonData);
+        } catch (error) {
+            console.error('Error parsing JSON file:', error);
+        }
+    } else if (dataUrl.value) {
+        try {
+            updateAppUrl(dataUrl.value);
+            jsonData = await fetchJsonData(dataUrl.value);
+            console.log('JSON data from URL:', jsonData);
+        } catch (error) {
+            console.error('Error fetching JSON data from URL:', error);
+        }
+    }
+});
+
+
+// Data reset
+resetDataBtn.addEventListener('click', () => {
+    dataUpload.value = '';
+    dataUrl.value = '';
+    jsonData = null;
+    window.history.replaceState(null, '', window.location.origin + window.location.pathname);
+});
+
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataUrlParam = urlParams.get('dataUrl');
+    if (dataUrlParam) {
+        try {
+            dataUrl.value = dataUrlParam;
+            jsonData = await fetchJsonData(dataUrlParam);
+            console.log('JSON data from URL parameter:', jsonData);
+        } catch (error) {
+            console.error('Error fetching JSON data from URL parameter:', error);
+        }
+    }
+});
+
+
+// Check embedding model configuration
+const baseURLInput = document.getElementById('base-url');
+const apiKeyInput = document.getElementById('api-key');
+const forgetApiKeyBtn = document.getElementById('forget-api-key');
+const submitApiKeyBtn = document.getElementById('submit-api-key');
+const modelsListDropdown = document.getElementById('model');
+const apiKeyMessageContainer = document.getElementById('api-key-message-container');
