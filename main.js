@@ -2,6 +2,8 @@ import './style.css';
 import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
+import { manageOpenAIApiKey, Embedding } from "./embedding.js";
+
 
 function ui(divID) {
     let divUI = divID ? document.getElementById(divID) : document.createElement('div');
@@ -33,7 +35,7 @@ function ui(divID) {
     <!-- Left panel: data, embedding API, embedding model, and projection method -->
     <div class="w-3/12 bg-black p-4 mt-8 flex flex-col h-full">
         <!-- Data upload -->
-        <div id="data-panel" class="relative py-2">
+        <div id="data-panel" class="relative py-2" title="The file should be a JSON array of objects. Each object must contain the 'text' key with a string value representing the text for embedding. Optionally, include: 1) 'embedding': An array of floats for pre-computed embeddings, and 2) 'label': A brief text description for the scatter plot entry.">
             <h2 class="absolute transform left-4 -translate-y-1/2 bg-black px-2 text-lg font-bold text-white whitespace-nowrap">Data</h2>
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
                 <!-- File upload -->
@@ -72,7 +74,7 @@ function ui(divID) {
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
                 <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
                     <label for="base-url" class="block font-medium text-white">Base URL</label>
-                    <input type="url" id="base-url" name="base-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="https://api.openai.com" value="https://api.openai.com" required>
+                    <input type="url" id="base-url" name="base-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1" required>
                 </div>
         
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
@@ -119,14 +121,14 @@ function ui(divID) {
     </div>
 
     <!-- Vertical line between left panel and scatter plot -->
-    <div class="w-px bg-white"></div>
+    <div class="w-px bg-white h-screen"></div>
 
     <!-- Scatter plot -->
     <div id="scatter-plot" class="w-2/3 p-4 bg-black flex flex-col h-full">
     </div>
 
     <!-- Vertical line between scatter plot and right Panel -->
-    <div class="w-px bg-white"></div>
+    <div class="w-px bg-white h-screen"></div>
 
     <!-- Right panel: query -->
     <div class="w-3/12 bg-black p-4 mt-4 flex flex-col h-full">
@@ -229,9 +231,82 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 // Check embedding model configuration
+let embedding;
+
 const baseURLInput = document.getElementById('base-url');
 const apiKeyInput = document.getElementById('api-key');
 const forgetApiKeyBtn = document.getElementById('forget-api-key');
 const submitApiKeyBtn = document.getElementById('submit-api-key');
 const modelsListDropdown = document.getElementById('model');
 const apiKeyMessageContainer = document.getElementById('api-key-message-container');
+
+
+function displayDefaultModelsList() {
+    modelsListDropdown.innerHTML = '<option value="" disabled selected>Set URL/API to view models</option>';
+}
+
+forgetApiKeyBtn.addEventListener('click', () => {
+    apiKeyInput.value = '';
+    while (apiKeyMessageContainer.firstChild) {
+        apiKeyMessageContainer.removeChild(apiKeyMessageContainer.firstChild);
+    }
+    displayDefaultModelsList()
+    manageOpenAIApiKey.deleteKey();
+});
+
+
+submitApiKeyBtn.addEventListener('click', async () => {
+    const baseURL = baseURLInput.value;
+    const apiKey = apiKeyInput.value;
+    const isValid = await manageOpenAIApiKey.validateOpenAIApiKey(baseURL, apiKey);
+
+    while (apiKeyMessageContainer.firstChild) {
+        apiKeyMessageContainer.removeChild(apiKeyMessageContainer.firstChild);
+    }
+
+    if (isValid) {  // API key is valid
+        // Save the API key
+        manageOpenAIApiKey.setKey(apiKey);
+
+        // Populate models list
+        embedding = await Embedding.instantiate(baseURL, apiKey);
+        const modelsList = embedding.getModelsList();
+        modelsListDropdown.innerHTML = '';
+        modelsListDropdown.disabled = false;
+        modelsList.forEach((model, index) => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.text = model;
+            modelsListDropdown.appendChild(option);
+
+            // Default to first model
+            if (index === 0) {
+                modelsListDropdown.value = model;
+                embedding.setModel(model);
+            }
+        });
+
+        // Display success message
+        const successMessage = document.createElement('div');
+        successMessage.classList.add('bg-green-50', 'border', 'border-green-300', 'text-green-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-4');
+        successMessage.innerHTML = '<strong class="font-bold">Success!</strong> API key is valid.';
+        apiKeyMessageContainer.appendChild(successMessage);
+    } else {  // API key is invalid
+        // Display default models list
+        displayDefaultModelsList();
+
+        // Display error message
+        const errorMessage = document.createElement('div');
+        errorMessage.classList.add('bg-red-50', 'border', 'border-red-300', 'text-red-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-4');
+        errorMessage.innerHTML = '<strong class="font-bold">Error:</strong> Invalid API key.';
+        apiKeyMessageContainer.appendChild(errorMessage);
+    }
+});
+
+(async () => {
+    const apiKey = manageOpenAIApiKey.getKey();
+    if (apiKey) {
+        apiKeyInput.value = apiKey;
+        await submitApiKeyBtn.click();
+    }
+})();
