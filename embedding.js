@@ -1,5 +1,6 @@
 import {OpenAI} from 'https://cdn.skypack.dev/openai@4.38.5?min';
-
+import {PCA} from 'https://esm.sh/ml-pca@4.1.1';
+import {UMAP} from 'https://esm.sh/umap-js@1.3.3';
 
 
 const manageOpenAIApiKey = {
