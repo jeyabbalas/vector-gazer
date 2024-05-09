@@ -1,0 +1,82 @@
+[
+  {
+    "text": "Northern Cardinal (Cardinalis cardinalis):\nAppearance: Male Northern Cardinals are vibrant red all over with a black mask around their face and a prominent crest. Females are primarily brown with warm reddish tinges on the wings, tail, and crest. They have red bills and a reddish crest. Both sexes have a short, thick bill.\nSong: The Northern Cardinal has a loud, clear, and melodious song often described as \"cheer, cheer, cheer\" or \"purty, purty, purty.\" They also make sharp \"chip\" calls.",
+    "label": "Northern Cardinal"
+  },
+  {
+    "text": "Blue Jay (Cyanocitta cristata):\nAppearance: Blue Jays have a distinctive blue crest, back, wings, and tail. Their face is white with a black necklace extending down the sides of their head and neck. Their underparts are grayish-white. They have a long tail and a stout, black bill.\nSong: Blue Jays have a variety of calls, including a loud, harsh \"jay-jay\" call and a softer, almost bell-like \"tool-ool\" sound. They are also known to mimic the calls of hawks.",
+    "label": "Blue Jay"
+  },
+  {
+    "text": "American Robin (Turdus migratorius):\nAppearance: American Robins have a dark gray-brown back and wings, with a rich orange-red breast. They have white throats with black streaks and a white lower belly. Their head is dark with white crescent-shaped markings around the eyes. They have a yellow bill and long legs.\nSong: The American Robin's song is a familiar, cheerful series of clear whistles, often described as \"cheerily, cheer up, cheer up, cheerily, cheer up.\"",
+    "label": "American Robin"
+  },
+  {
+    "text": "Downy Woodpecker (Dryobates pubescens):\nAppearance: Downy Woodpeckers are small, black-and-white woodpeckers. They have a black upper back and wings with white spots, and white underparts. Males have a small red patch on the back of their head. They have a short, stout bill and a black stripe extending from the bill to the neck.\nSong: Downy Woodpeckers do not sing songs but have a variety of calls. The most common is a sharp \"pik\" sound. They also make a descending whinny call and a soft, rolling rattle during the breeding season.",
+    "label": "Downy Woodpecker"
+  },
+  {
+    "text": "American Goldfinch (Spinus tristis):\nAppearance: Male American Goldfinches are bright yellow during the breeding season, with a black cap, wings, and tail. Females are duller yellow-brown with black wings and tail. In winter, both sexes appear more olive-brown. They have short, conical bills.\nSong: The American Goldfinch's song is a lively, high-pitched series of twitters and warbles, often described as \"po-ta-to-chip, po-ta-to-chip.\"",
+    "label": "American Goldfinch"
+  },
+  {
+    "text": "Common Loon (Gavia immer):\nAppearance: The Common Loon has a striking black-and-white checkered back, a black head, and a white neck with a black band. In summer, they have a greenish-black head and a distinctive red eye. In winter, their plumage is duller, with a grayish back and white underparts. They have a long, pointed bill and are large, swimming birds.\nSong: The Common Loon is known for its haunting, eerie calls. Their iconic call is a loud, wailing \"hoo-hoo-hoo\" that can be heard over long distances. They also make yodeling calls and short hoots.",
+    "label": "Common Loon"
+  },
+  {
+    "text": "Mourning Dove (Zenaida macroura):\nAppearance: Mourning Doves have a slender body with a small head and a long, pointed tail. They are grayish-brown overall, with black spots on their wings and a pinkish hue on their breast. They have a black spot on the side of their neck and blue skin around their eyes.\nSong: The Mourning Dove's call is a distinctive, mournful \"coo-ah, coo, coo, coo\" sound that gives the bird its name. The call is soft and drawn out.",
+    "label": "Mourning Dove"
+  },
+  {
+    "text": "Ruby-throated Hummingbird (Archilochus colubris):\nAppearance: The Ruby-throated Hummingbird is a tiny bird with a slender bill and a forked tail. Males have a bright red throat (gorget) that can appear black in low light. Their back is metallic green, and their underparts are grayish-white. Females lack the red throat and have white throats with dusky streaks.\nSong: The Ruby-throated Hummingbird does not sing but makes high-pitched chirps and twitters. Their wings also make a humming sound during flight.",
+    "label": "Ruby-throated Hummingbird"
+  },
+  {
+    "text": "Tufted Titmouse (Baeolophus bicolor):\nAppearance: The Tufted Titmouse is a small, gray bird with a white underside, rusty flanks, and a distinctive gray crest. They have large, dark eyes, a short, stout bill, and pale legs.\nSong: The Tufted Titmouse has a variety of calls, but their most recognizable song is a clear, whistled \"peter-peter-peter\" or \"cheevy-cheevy-cheevy.\"",
+    "label": "Tufted Titmouse"
+  },
+  {
+    "text": "Baltimore Oriole (Icterus galbula):\nAppearance: The male Baltimore Oriole is a vibrant orange and black bird with a solid black head and upper back. They have a bright orange underside and a white wing bar. Females are less vibrant, with a yellowish-orange head and underparts and grayish wings with white wing bars. They have a pointed, silver-gray bill.\nSong: The Baltimore Oriole's song is a series of rich, flutelike whistles that are often described as \"hew-li, hew-li, hew-li, hew-li.\" They also make a series of harsh, chattering calls.",
+    "label": "Baltimore Oriole"
+  },
+  {
+    "text": "Red-winged Blackbird (Agelaius phoeniceus):\nAppearance: Male Red-winged Blackbirds are entirely black with striking red and yellow shoulder patches (epaulets). Females are brown and heavily streaked, with a whitish eyebrow and throat.\nSong: Male Red-winged Blackbirds produce a distinctive \"conk-la-ree\" song, often while perched atop cattails or other vegetation.",
+    "label": "Red-winged Blackbird"
+  },
+  {
+    "text": "Eastern Bluebird (Sialia sialis):\nAppearance: Male Eastern Bluebirds have a bright blue back, head, and wings, with a rusty-red breast and white underparts. Females are duller, with more grayish-blue upperparts and a paler orange-brown breast.\nSong: The Eastern Bluebird's song is a soft, warbling \"chur-lee, chur-lee, chur-lee\" phrase.",
+    "label": "Eastern Bluebird"
+  },
+  {
+    "text": "Cedar Waxwing (Bombycilla cedrorum):\nAppearance: Cedar Waxwings have a sleek, buff-brown body with a black mask, a crest, and a yellow-tipped tail. They have distinctive red, waxy tips on their secondary wing feathers.\nSong: Cedar Waxwings have a high-pitched, thin, whistling call often described as \"sree\" or \"zree.\"",
+    "label": "Cedar Waxwing"
+  },
+  {
+    "text": "Northern Flicker (Colaptes auratus):\nAppearance: Northern Flickers are large, brown woodpeckers with black-spotted plumage, a white rump, and a black bib. The undersides of their wings and tail are bright yellow in the eastern populations and red in the western ones.\nSong: Northern Flickers have a loud, rolling \"ki-ki-ki-ki-ki-ki-ki\" call and a piercing \"klee-yer\" sound.",
+    "label": "Northern Flicker"
+  },
+  {
+    "text": "Tree Swallow (Tachycineta bicolor):\nAppearance: Tree Swallows have iridescent blue-green upperparts and pure white underparts. They have a slightly forked tail and long, pointed wings.\nSong: Tree Swallows have a liquid, gurgling series of twitters and chirps.",
+    "label": "Tree Swallow"
+  },
+  {
+    "text": "Black-capped Chickadee (Poecile atricapillus):\nAppearance: Black-capped Chickadees have a black cap and bib, white cheeks, and a gray back, wings, and tail. Their underparts are whitish with buffy sides.\nSong: The Black-capped Chickadee's song is a clear, whistled \"fee-bee\" or \"hey, sweetie.\" They also make a characteristic \"chick-a-dee-dee-dee\" call.",
+    "label": "Black-capped Chickadee"
+  },
+  {
+    "text": "White-breasted Nuthatch (Sitta carolinensis):\nAppearance: White-breasted Nuthatches have a blue-gray back, a white face and underparts, and a black cap (in males; females have a grayish cap). They have a long, pointed bill and a short tail.\nSong: White-breasted Nuthatches make a rapid, nasal \"yank-yank-yank\" call, often compared to a tiny toy horn.",
+    "label": "White-breasted Nuthatch"
+  },
+  {
+    "text": "Indigo Bunting (Passerina cyanea):\nAppearance: Male Indigo Buntings are entirely brilliant blue, with slightly darker wings and tail. Females are brown with faint streaking on the underparts and a hint of blue on the wings and tail.\nSong: The Indigo Bunting's song is a series of high-pitched, sharp, clear notes, often described as \"fire-fire, where-where, here-here, see-see, put-it-out, put-it-out.\"",
+    "label": "Indigo Bunting"
+  },
+  {
+    "text": "Hermit Thrush (Catharus guttatus):\nAppearance: Hermit Thrushes have a brown back, reddish tail, and white underparts with heavy black spots. They have a thin, white eye-ring and a slightly curved bill.\nSong: The Hermit Thrush's song is a haunting, flutelike series of clear, descending notes, often described as \"oh, holy holy, ah, purity purity eeh, sweetly sweetly.\"",
+    "label": "Hermit Thrush"
+  },
+  {
+    "text": "Pileated Woodpecker (Dryocopus pileatus):\nAppearance: The Pileated Woodpecker is a large, crow-sized woodpecker with a black body, white stripes on the face and neck, and a prominent red crest. Males have a red stripe on the cheek, while females have a black stripe.\nSong: Pileated Woodpeckers make a loud, whinnying call that lasts several seconds, as well as shorter \"wuk-wuk-wuk\" calls. Their drumming is loud and resonant, often compared to the sound of a jackhammer.",
+    "label": "Pileated Woodpecker"
+  }
+]
