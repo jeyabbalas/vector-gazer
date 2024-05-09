@@ -35,7 +35,17 @@ function ui(divID) {
     <!-- Left panel: data, embedding API, embedding model, and projection method -->
     <div class="w-3/12 bg-black p-4 mt-5 flex flex-col h-full">
         <!-- Data upload -->
-        <div id="data-panel" class="relative py-2" title="The file should be a JSON array of objects. Each object must contain the 'text' key with a string value representing the text for embedding. Optionally, include: 1) 'embedding': An array of floats for pre-computed embeddings, and 2) 'label': A brief text description for the scatter plot entry.">
+        <div id="data-panel" class="relative py-2" title="Expected JSON format:
+{
+    'data': [
+        {
+            'text': ' (required) A string representing the text to be embedded',
+            'label': '(optional) A label string displayed in scatter plot for the text item',
+            'embedding': [(optional) An array of floats embedding, if pre-computed, otherwise leave out]
+        }
+    ],
+    'embeddingMethod': 'An optional string describing the embedding method if embeddings are included'
+}">
             <h2 class="absolute transform left-4 -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Data</h2>
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
                 <!-- File upload -->
@@ -59,6 +69,9 @@ function ui(divID) {
                     <label for="data-url" class="block font-medium text-sm text-white">File URL</label>
                     <input type="url" id="data-url" name="data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
+                
+                <!-- error message container -->
+                <div id="data-error-message-container"></div>
                 
                 <!-- reset and submit buttons -->
                 <div class="py-1 mt-1">
@@ -168,9 +181,13 @@ function ui(divID) {
 
 ui('app');
 
+// Embedding class
+let embedding;
+
 // Load data
 const dataUpload = document.getElementById('data-upload');
 const dataUrl = document.getElementById('data-url');
+const dataErrorContainer = document.getElementById('data-error-message-container');
 const submitDataBtn = document.getElementById('submit-data');
 const resetDataBtn = document.getElementById('reset-data');
 
@@ -185,11 +202,17 @@ const updateAppUrl = (url) => {
 
 // Data submit
 submitDataBtn.addEventListener('click', async () => {
+    while (dataErrorContainer.firstChild) {
+        dataErrorContainer.removeChild(dataErrorContainer.firstChild);
+    }
+
     if (dataUpload.files.length > 0) {
         try {
             jsonData = await parseJsonFile(dataUpload.files[0]);
-            validateJsonData(jsonData);
-            console.log('JSON data from file:', jsonData);
+            validateJsonData(jsonData, dataErrorContainer);
+            if (embedding) {
+                embedding.setData(jsonData);
+            }
         } catch (error) {
             console.error('Error parsing JSON file or validation failed:', error);
         }
@@ -197,8 +220,11 @@ submitDataBtn.addEventListener('click', async () => {
         try {
             updateAppUrl(dataUrl.value);
             jsonData = await fetchJsonData(dataUrl.value);
-            validateJsonData(jsonData);
-            console.log('JSON data from URL:', jsonData);
+            validateJsonData(jsonData, dataErrorContainer);
+            if (embedding) {
+                embedding.setData(jsonData);
+            }
+            console.log(jsonData);
         } catch (error) {
             console.error('Error fetching JSON data from URL or validation failed:', error);
         }
@@ -219,20 +245,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dataUrlParam = urlParams.get('dataUrl');
     if (dataUrlParam) {
-        try {
-            dataUrl.value = dataUrlParam;
-            jsonData = await fetchJsonData(dataUrlParam);
-            console.log('JSON data from URL parameter:', jsonData);
-        } catch (error) {
-            console.error('Error fetching JSON data from URL parameter:', error);
-        }
+        dataUrl.value = dataUrlParam;
+        await submitDataBtn.click();
     }
 });
 
 
 // Check embedding model configuration
-let embedding;
-
 const baseURLInput = document.getElementById('base-url');
 const apiKeyInput = document.getElementById('api-key');
 const forgetApiKeyBtn = document.getElementById('forget-api-key');
@@ -320,6 +339,15 @@ submitApiKeyBtn.addEventListener('click', async () => {
 });
 
 
+(async () => {
+    const apiKey = manageOpenAIApiKey.getKey();
+    if (apiKey) {
+        apiKeyInput.value = apiKey;
+        await submitApiKeyBtn.click();
+    }
+})();
+
+
 dimensionSlider.addEventListener('input', () => {
     dimensionOutput.value = dimensionSlider.value;
 });
@@ -346,10 +374,13 @@ submitModelBtn.addEventListener('click', () => {
 });
 
 
-(async () => {
-    const apiKey = manageOpenAIApiKey.getKey();
-    if (apiKey) {
-        apiKeyInput.value = apiKey;
-        await submitApiKeyBtn.click();
-    }
-})();
+modelsListDropdown.addEventListener('change', () => {
+    const model = modelsListDropdown.value;
+    embedding.setModel(model);
+    const dimensionRangeValues = embedding.getModelDimensionRanges(model);
+    dimensionSlider.min = dimensionRangeValues[0];
+    dimensionSlider.max = dimensionRangeValues[1];
+    dimensionSlider.value = embedding.getModelDimensionDefaults(model);
+    dimensionOutput.value = dimensionSlider.value;
+    submitModelBtn.disabled = false;
+});

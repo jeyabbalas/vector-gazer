@@ -40,6 +40,7 @@ const manageOpenAIApiKey = {
 
 class Embedding {
     constructor(openai, modelsList) {
+        // Embedding model
         this.openai = openai;
         this.modelsList = modelsList;
         this.model = '';
@@ -54,6 +55,13 @@ class Embedding {
             'text-embedding-3-large': 3072
         };
         this.dimension = this.model === '' ? 0 : this.modelDimensionDefaults[this.model];
+
+        // Data
+        this.data = [];
+
+        // Projection method
+        this.projectionMethods = ['PCA', 'UMAP'];
+        this.projectionMethod = 'PCA';
     }
 
     static async instantiate(baseURL, apiKey) {
@@ -92,6 +100,14 @@ class Embedding {
 
     setDimension(dimension) {
         this.dimension = dimension;
+    }
+
+    getData() {
+        return this.data;
+    }
+
+    setData(data) {
+        this.data = data;
     }
 }
 
