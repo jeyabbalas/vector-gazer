@@ -2,6 +2,7 @@ import './style.css';
 import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
+import { parseJsonFile, fetchJsonData, validateJsonData } from './utils.js';
 import { manageOpenAIApiKey, Embedding } from "./embedding.js";
 
 
@@ -55,7 +56,7 @@ function ui(divID) {
                 
                 <!-- URL input -->
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
-                    <label for="data-url" class="block font-medium text-sm text-white">URL</label>
+                    <label for="data-url" class="block font-medium text-sm text-white">File URL</label>
                     <input type="url" id="data-url" name="data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
                 
@@ -63,7 +64,7 @@ function ui(divID) {
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
                         <button id="reset-data" class="rounded-md border border-white bg-red-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
-                        <button id="submit-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Submit</button>
+                        <button id="submit-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load</button>
                     </div>
                 </div>
             </div>
@@ -132,7 +133,7 @@ function ui(divID) {
     <!-- Vertical line between scatter plot and right Panel -->
     <div class="w-px bg-white h-screen"></div>
 
-    <!-- Right panel: projection method and query -->
+    <!-- Right panel: projection method, query, and download data -->
     <div class="w-3/12 bg-black p-4 mt-5 flex flex-col h-full">
         <!-- Projection method selection -->
         <div id="projection-panel" class="relative py-2"> 
@@ -145,6 +146,18 @@ function ui(divID) {
         <div id="query-panel" class="relative py-2"> 
             <h2 class="absolute left-4 transform -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Query</h2>
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
+            </div>
+        </div>
+        
+        <!-- Download embedding data -->
+        <div id="query-panel" class="relative py-2"> 
+            <h2 class="absolute left-4 transform -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Download data</h2>
+            <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
+                <div class="py-1 mt-1">
+                    <div class="flex justify-center gap-2">
+                        <button id="download-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download embedded data</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -163,31 +176,6 @@ const resetDataBtn = document.getElementById('reset-data');
 
 let jsonData;
 
-const parseJsonFile = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = JSON.parse(event.target.result);
-                resolve(data);
-            } catch (error) {
-                reject(error);
-            }
-        };
-        reader.readAsText(file);
-    });
-};
-
-
-const fetchJsonData = async (url) => {
-    try {
-        const response = await fetch(url);
-        return await response.json();
-    } catch (error) {
-        throw error;
-    }
-};
-
 
 const updateAppUrl = (url) => {
     const newUrl = `${window.location.origin}${window.location.pathname}?dataUrl=${encodeURIComponent(url)}`;
@@ -200,17 +188,19 @@ submitDataBtn.addEventListener('click', async () => {
     if (dataUpload.files.length > 0) {
         try {
             jsonData = await parseJsonFile(dataUpload.files[0]);
+            validateJsonData(jsonData);
             console.log('JSON data from file:', jsonData);
         } catch (error) {
-            console.error('Error parsing JSON file:', error);
+            console.error('Error parsing JSON file or validation failed:', error);
         }
     } else if (dataUrl.value) {
         try {
             updateAppUrl(dataUrl.value);
             jsonData = await fetchJsonData(dataUrl.value);
+            validateJsonData(jsonData);
             console.log('JSON data from URL:', jsonData);
         } catch (error) {
-            console.error('Error fetching JSON data from URL:', error);
+            console.error('Error fetching JSON data from URL or validation failed:', error);
         }
     }
 });
