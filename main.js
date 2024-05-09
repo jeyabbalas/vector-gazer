@@ -104,11 +104,17 @@ function ui(divID) {
                         <option value="" disabled selected>Set URL/API to view models</option>
                     </select>
                 </div>
-                <!-- Slider titled "Dimension". By default, it is disabled and takes range 0 to 0. It also displays the current value to the right of the slider. -->
+                
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
                     <label for="dimension" class="block font-medium text-sm text-white">Dimension</label>
-                    <output for="dimension" class="block text-sm text-white text-center">0</output>
+                    <output for="dimension" id="dimension-output" class="block text-sm text-white text-center">0</output>
                     <input type="range" id="dimension" name="dimension" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" min="0" max="0" value="0" disabled>
+                </div>
+                
+                <div class="py-1 mt-1">
+                    <div class="flex justify-center gap-2">
+                        <button id="submit-model" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Embed data</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -239,12 +245,21 @@ const baseURLInput = document.getElementById('base-url');
 const apiKeyInput = document.getElementById('api-key');
 const forgetApiKeyBtn = document.getElementById('forget-api-key');
 const submitApiKeyBtn = document.getElementById('submit-api-key');
-const modelsListDropdown = document.getElementById('model');
 const apiKeyMessageContainer = document.getElementById('api-key-message-container');
+const modelsListDropdown = document.getElementById('model');
+const dimensionSlider = document.getElementById('dimension');
+const dimensionOutput = document.getElementById('dimension-output');
+const submitModelBtn = document.getElementById('submit-model');
 
 
 function displayDefaultModelsList() {
     modelsListDropdown.innerHTML = '<option value="" disabled selected>Set URL/API to view models</option>';
+    dimensionSlider.min = 0;
+    dimensionSlider.max = 0;
+    dimensionSlider.value = 0;
+    dimensionSlider.disabled = true;
+    dimensionOutput.value = dimensionSlider.value;
+    submitModelBtn.disabled = true;
 }
 
 forgetApiKeyBtn.addEventListener('click', () => {
@@ -252,7 +267,7 @@ forgetApiKeyBtn.addEventListener('click', () => {
     while (apiKeyMessageContainer.firstChild) {
         apiKeyMessageContainer.removeChild(apiKeyMessageContainer.firstChild);
     }
-    displayDefaultModelsList()
+    displayDefaultModelsList();
     manageOpenAIApiKey.deleteKey();
 });
 
@@ -285,6 +300,13 @@ submitApiKeyBtn.addEventListener('click', async () => {
             if (index === 0) {
                 modelsListDropdown.value = model;
                 embedding.setModel(model);
+                const dimensionRangeValues = embedding.getModelDimensionRanges(model);
+                dimensionSlider.min = dimensionRangeValues[0];
+                dimensionSlider.max = dimensionRangeValues[1];
+                dimensionSlider.value = embedding.getModelDimensionDefaults(model);
+                dimensionSlider.disabled = false;
+                dimensionOutput.value = dimensionSlider.value;
+                submitModelBtn.disabled = false;
             }
         });
 
@@ -304,6 +326,20 @@ submitApiKeyBtn.addEventListener('click', async () => {
         apiKeyMessageContainer.appendChild(errorMessage);
     }
 });
+
+
+dimensionSlider.addEventListener('input', () => {
+    dimensionOutput.value = dimensionSlider.value;
+});
+
+
+submitModelBtn.addEventListener('click', () => {
+    const model = modelsListDropdown.value;
+    embedding.setModel(model);
+    embedding.setDimension(parseInt(dimensionSlider.value));
+    // calculate embeddings
+});
+
 
 (async () => {
     const apiKey = manageOpenAIApiKey.getKey();

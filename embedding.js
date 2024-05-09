@@ -43,6 +43,17 @@ class Embedding {
         this.openai = openai;
         this.modelsList = modelsList;
         this.model = '';
+        this.modelDimensionRanges = {
+            'text-embedding-ada-002': [1536, 1536],
+            'text-embedding-3-small': [2, 1536],
+            'text-embedding-3-large': [2, 3072]
+        };
+        this.modelDimensionDefaults = {
+            'text-embedding-ada-002': 1536,
+            'text-embedding-3-small': 1536,
+            'text-embedding-3-large': 3072
+        };
+        this.dimension = this.model === '' ? 0 : this.modelDimensionDefaults[this.model];
     }
 
     static async instantiate(baseURL, apiKey) {
@@ -65,6 +76,22 @@ class Embedding {
 
     getModel() {
         return this.model;
+    }
+
+    getModelDimensionRanges(modelName) {
+        return this.modelDimensionRanges[modelName];
+    }
+
+    getModelDimensionDefaults(modelName) {
+        return this.modelDimensionDefaults[modelName];
+    }
+
+    getDimension() {
+        return this.dimension;
+    }
+
+    setDimension(dimension) {
+        this.dimension = dimension;
     }
 }
 
