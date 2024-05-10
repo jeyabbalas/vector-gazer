@@ -304,7 +304,6 @@ const projectionTabs = document.querySelectorAll('[data-tab]');
 const pcaParams = document.getElementById('pca-params');
 const umapParams = document.getElementById('umap-params');
 
-
 const updateAppUrl = (url) => {
     const newUrl = `${window.location.origin}${window.location.pathname}?dataUrl=${encodeURIComponent(url)}`;
     window.history.replaceState(null, '', newUrl);
@@ -346,7 +345,7 @@ submitDataBtn.addEventListener('click', async () => {
             dimensionSlider.min = dimensionRangeValues[0];
             dimensionSlider.max = dimensionRangeValues[1];
             dimensionSlider.value = embedding.getDimension();
-            dimensionOutput.value = dimensionSlider.value;
+            dimensionOutput.textContent = dimensionSlider.value;
             submitModelBtn.disabled = false;
         }
     }
@@ -378,7 +377,7 @@ function displayDefaultModelsList() {
     dimensionSlider.max = 0;
     dimensionSlider.value = 0;
     dimensionSlider.disabled = true;
-    dimensionOutput.value = dimensionSlider.value;
+    dimensionOutput.textContent = dimensionSlider.value;
     submitModelBtn.disabled = true;
 }
 
@@ -425,7 +424,7 @@ submitApiKeyBtn.addEventListener('click', async () => {
                 dimensionSlider.max = dimensionRangeValues[1];
                 dimensionSlider.value = embedding.getModelDimensionDefaults(model);
                 dimensionSlider.disabled = false;
-                dimensionOutput.value = dimensionSlider.value;
+                dimensionOutput.textContent = dimensionSlider.value;
                 submitModelBtn.disabled = false;
             }
         });
@@ -458,7 +457,7 @@ submitApiKeyBtn.addEventListener('click', async () => {
 
 
 dimensionSlider.addEventListener('input', () => {
-    dimensionOutput.value = dimensionSlider.value;
+    dimensionOutput.textContent = dimensionSlider.value;
 });
 
 
@@ -490,7 +489,7 @@ modelsListDropdown.addEventListener('change', () => {
     dimensionSlider.min = dimensionRangeValues[0];
     dimensionSlider.max = dimensionRangeValues[1];
     dimensionSlider.value = embedding.getModelDimensionDefaults(model);
-    dimensionOutput.value = dimensionSlider.value;
+    dimensionOutput.textContent = dimensionSlider.value;
     submitModelBtn.disabled = false;
 });
 
