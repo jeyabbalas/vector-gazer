@@ -124,7 +124,7 @@ const validateJsonData = (jsonData, container) => {
  * @param {string} message - The error message to display.
  * @param {HTMLElement} container - The container element to display the message in.
  */
-function displayError(message, container) {
+const displayError = (message, container) => {
     const errorMessage = document.createElement('div');
     errorMessage.classList.add('bg-red-50', 'border', 'border-red-300', 'text-red-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-2');
     errorMessage.innerHTML = `<strong class="font-bold">Error:</strong> ${message}`;
@@ -132,8 +132,14 @@ function displayError(message, container) {
 }
 
 
+const jsonDataContainsEmbeddings = (jsonData) => {
+    return jsonData.data[0].hasOwnProperty('embedding');
+}
+
+
 export {
     parseJsonFile,
     fetchJsonData,
-    validateJsonData
+    validateJsonData,
+    jsonDataContainsEmbeddings
 };

@@ -2,7 +2,7 @@ import './style.css';
 import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
-import { parseJsonFile, fetchJsonData, validateJsonData } from './utils.js';
+import { parseJsonFile, fetchJsonData, validateJsonData, jsonDataContainsEmbeddings } from './utils.js';
 import { manageOpenAIApiKey, Embedding } from "./embedding.js";
 
 
@@ -151,7 +151,32 @@ function ui(divID) {
         <!-- Projection method selection -->
         <div id="projection-panel" class="relative py-2"> 
             <h2 class="absolute left-4 transform -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Projection method</h2>
-            <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
+            <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
+                <div class="w-full">
+                    <div class="sm:hidden">
+                        <label for="tabs" class="sr-only">Select a tab</label>
+                        <select id="tabs" name="tabs" class="block w-full rounded-md border-white focus:border-white focus:ring-white">
+                            <option selected>PCA</option>
+                            <option>UMAP</option>
+                        </select>
+                    </div>
+                    <div class="hidden sm:block">
+                        <nav class="flex space-x-2" aria-label="Tabs">
+                            <a href="#" class="bg-gray-800 text-white px-3 py-2 font-medium text-sm rounded-t-md border-b-2 border border-white hover:bg-gray-700" aria-current="page" data-tab="pca">PCA</a>
+                            <a href="#" class="text-gray-400 hover:text-white px-3 py-2 font-medium text-sm rounded-t-md border-b-2 border border-transparent hover:border-white hover:bg-gray-800" data-tab="umap">UMAP</a>
+                        </nav>
+                    </div>
+                </div>
+                <div class="w-full border-t border-white"></div>
+                <div id="projection-params" class="w-full rounded-b-md border border-white p-2">
+                    <!-- Empty container for projection parameters -->
+                    <div id="pca-params" class="hidden">
+                        <!-- PCA parameters placeholder -->
+                    </div>
+                    <div id="umap-params" class="hidden">
+                        <!-- UMAP parameters placeholder -->
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -159,6 +184,18 @@ function ui(divID) {
         <div id="query-panel" class="relative py-2"> 
             <h2 class="absolute left-4 transform -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Query</h2>
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
+                <!-- Query input -->
+                <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
+                    <label for="query" class="block font-medium text-sm text-white">Query text</label>
+                    <textarea id="query" name="query" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0 resize-y" rows="20" required></textarea>
+                </div>
+                
+                <!-- Clear and project button -->
+                <div class="py-1 mt-1">
+                    <div class="flex justify-center gap-2">
+                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Project</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -191,7 +228,18 @@ const dataErrorContainer = document.getElementById('data-error-message-container
 const submitDataBtn = document.getElementById('submit-data');
 const resetDataBtn = document.getElementById('reset-data');
 
-let jsonData;
+let data;
+
+// Check embedding model configuration
+const baseURLInput = document.getElementById('base-url');
+const apiKeyInput = document.getElementById('api-key');
+const forgetApiKeyBtn = document.getElementById('forget-api-key');
+const submitApiKeyBtn = document.getElementById('submit-api-key');
+const apiKeyMessageContainer = document.getElementById('api-key-message-container');
+const modelsListDropdown = document.getElementById('model');
+const dimensionSlider = document.getElementById('dimension');
+const dimensionOutput = document.getElementById('dimension-output');
+const submitModelBtn = document.getElementById('submit-model');
 
 
 const updateAppUrl = (url) => {
@@ -208,25 +256,35 @@ submitDataBtn.addEventListener('click', async () => {
 
     if (dataUpload.files.length > 0) {
         try {
-            jsonData = await parseJsonFile(dataUpload.files[0]);
-            validateJsonData(jsonData, dataErrorContainer);
-            if (embedding) {
-                embedding.setData(jsonData);
-            }
+            data = await parseJsonFile(dataUpload.files[0]);
+            validateJsonData(data, dataErrorContainer);
         } catch (error) {
             console.error('Error parsing JSON file or validation failed:', error);
         }
     } else if (dataUrl.value) {
         try {
             updateAppUrl(dataUrl.value);
-            jsonData = await fetchJsonData(dataUrl.value);
-            validateJsonData(jsonData, dataErrorContainer);
-            if (embedding) {
-                embedding.setData(jsonData);
-            }
-            console.log(jsonData);
+            data = await fetchJsonData(dataUrl.value);
+            validateJsonData(data, dataErrorContainer);
         } catch (error) {
             console.error('Error fetching JSON data from URL or validation failed:', error);
+        }
+    }
+
+    if (data && embedding) {
+        embedding.setData(data);
+
+        // Update embedding model panel
+        if (jsonDataContainsEmbeddings(data)) {
+            embedding.setModel(data.embeddingMethod);
+            modelsListDropdown.value = embedding.getModel();
+            embedding.setDimension(data.data[0].embedding.length);
+            const dimensionRangeValues = embedding.getModelDimensionRanges(embedding.getModel());
+            dimensionSlider.min = dimensionRangeValues[0];
+            dimensionSlider.max = dimensionRangeValues[1];
+            dimensionSlider.value = embedding.getDimension();
+            dimensionOutput.value = dimensionSlider.value;
+            submitModelBtn.disabled = false;
         }
     }
 });
@@ -236,7 +294,7 @@ submitDataBtn.addEventListener('click', async () => {
 resetDataBtn.addEventListener('click', () => {
     dataUpload.value = '';
     dataUrl.value = '';
-    jsonData = null;
+    data = null;
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
 
@@ -249,18 +307,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         await submitDataBtn.click();
     }
 });
-
-
-// Check embedding model configuration
-const baseURLInput = document.getElementById('base-url');
-const apiKeyInput = document.getElementById('api-key');
-const forgetApiKeyBtn = document.getElementById('forget-api-key');
-const submitApiKeyBtn = document.getElementById('submit-api-key');
-const apiKeyMessageContainer = document.getElementById('api-key-message-container');
-const modelsListDropdown = document.getElementById('model');
-const dimensionSlider = document.getElementById('dimension');
-const dimensionOutput = document.getElementById('dimension-output');
-const submitModelBtn = document.getElementById('submit-model');
 
 
 function displayDefaultModelsList() {
