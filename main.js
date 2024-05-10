@@ -122,8 +122,7 @@ function ui(divID) {
                 </div>
                 
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
-                    <label for="dimension" class="block font-medium text-sm text-white">Dimension</label>
-                    <output for="dimension" id="dimension-output" class="block text-sm text-white text-center">0</output>
+                    <label for="dimension" class="block font-medium text-sm text-white">Dimension: <span id="dimension-output" class="text-white">0</span></label>
                     <input type="range" id="dimension" name="dimension" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" min="0" max="0" value="0" disabled>
                 </div>
                 
@@ -154,8 +153,8 @@ function ui(divID) {
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
                 <div class="w-full">
                     <div class="sm:hidden">
-                        <label for="tabs" class="sr-only">Select a tab</label>
-                        <select id="tabs" name="tabs" class="block w-full rounded-md border-white focus:border-white focus:ring-white">
+                        <label for="projection-tabs" class="sr-only">Select a tab</label>
+                        <select id="projection-tabs" name="projection-tabs" class="block w-full rounded-md border-white focus:border-white focus:ring-white">
                             <option selected>PCA</option>
                             <option>UMAP</option>
                         </select>
@@ -169,12 +168,71 @@ function ui(divID) {
                 </div>
                 <div class="w-full border-t border-white"></div>
                 <div id="projection-params" class="w-full rounded-b-md border border-white p-2">
-                    <!-- Empty container for projection parameters -->
-                    <div id="pca-params" class="hidden">
-                        <!-- PCA parameters placeholder -->
+                    <div id="pca-params">
+                        <!-- PCA parameters -->
+                        <!-- Dimension -->
+                        <div class="flex items-center justify-start mb-2">
+                            <label for="pca-dimension" class="text-sm font-medium text-white mr-2">Dimension:</label>
+                            <div class="inline-flex items-center space-x-2">
+                                <span class="text-sm text-white">2D</span>
+                                <div class="relative inline-block w-12 align-middle select-none">
+                                    <input type="checkbox" id="pca-dimension" class="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 checked:bg-gray-500" checked/>
+                                    <label for="pca-dimension" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
+                                </div>
+                                <span class="text-sm text-white">3D</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Explained variance -->
+                        <div class="mb-2">
+                            <label for="pca-explained-variance" class="block text-sm font-medium text-white">Explained variance: <span id="pca-explained-variance-value" class="text-white">0%</span></label>
+                        </div>
                     </div>
                     <div id="umap-params" class="hidden">
-                        <!-- UMAP parameters placeholder -->
+                        <!-- UMAP parameters -->
+                        <!-- Dimension -->
+                        <div class="flex items-center justify-start mb-2">
+                            <label for="umap-dimension" class="text-sm font-medium text-white mr-2">Dimension:</label>
+                            <div class="inline-flex items-center space-x-2">
+                                <span class="text-sm text-white">2D</span>
+                                <div class="relative inline-block w-12 align-middle select-none">
+                                    <input type="checkbox" id="umap-dimension" class="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 checked:bg-gray-500" checked/>
+                                    <label for="umap-dimension" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
+                                </div>
+                                <span class="text-sm text-white">3D</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Number of epochs -->
+                        <div class="flex items-center justify-start mb-2">
+                            <label for="umap-epochs" class="text-sm font-medium text-white mr-2">Number of epochs:</label>
+                            <input type="number" id="umap-epochs" name="umap-epochs" class="block px-2 bg-gray-800 text-white rounded-md border-white shadow-sm focus:border-white focus:ring-white w-24" min="1" value="400">
+                        </div>
+                        
+                        <!-- Number of neighbors -->
+                        <div class="mb-2">
+                            <label for="umap-neighbors" class="block text-sm font-medium text-white">Number of neighbors: <span id="umap-neighbors-value" class="text-white">15</span></label>
+                            <input type="range" id="umap-neighbors" name="umap-neighbors" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="2" max="100" value="15">
+                        </div>
+                        
+                        <!-- Minimum distance -->
+                        <div class="mb-2">
+                            <label for="umap-min-dist" class="block text-sm font-medium text-white">Minimum distance: <span id="umap-min-dist-value" class="text-white">0.1</span></label>
+                            <input type="range" id="umap-min-dist" name="umap-min-dist" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="0.001" max="0.501" step="0.010" value="0.1">
+                        </div>
+                        
+                        <!-- Spread -->
+                        <div class="flex items-center justify-start">
+                            <label for="umap-spread" class="text-sm font-medium text-white mr-2">Spread:</label>
+                            <input type="number" id="umap-spread" name="umap-spread" class="block px-2 bg-gray-800 text-white rounded-md border-white shadow-sm focus:border-white focus:ring-white w-24" min="0" value="1.0" step="0.1">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Project data button -->
+                <div class="py-1 mt-1">
+                    <div class="flex justify-center gap-2">
+                        <button id="project-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Project data</button>
                     </div>
                 </div>
             </div>
@@ -187,13 +245,13 @@ function ui(divID) {
                 <!-- Query input -->
                 <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
                     <label for="query" class="block font-medium text-sm text-white">Query text</label>
-                    <textarea id="query" name="query" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0 resize-y" rows="20" required></textarea>
+                    <textarea id="query" name="query" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0 resize-y" rows="15" required></textarea>
                 </div>
                 
-                <!-- Clear and project button -->
+                <!-- Project query button -->
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Project</button>
+                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Project query</button>
                     </div>
                 </div>
             </div>
@@ -240,6 +298,11 @@ const modelsListDropdown = document.getElementById('model');
 const dimensionSlider = document.getElementById('dimension');
 const dimensionOutput = document.getElementById('dimension-output');
 const submitModelBtn = document.getElementById('submit-model');
+
+// Projection method selection
+const projectionTabs = document.querySelectorAll('[data-tab]');
+const pcaParams = document.getElementById('pca-params');
+const umapParams = document.getElementById('umap-params');
 
 
 const updateAppUrl = (url) => {
@@ -429,4 +492,37 @@ modelsListDropdown.addEventListener('change', () => {
     dimensionSlider.value = embedding.getModelDimensionDefaults(model);
     dimensionOutput.value = dimensionSlider.value;
     submitModelBtn.disabled = false;
+});
+
+
+projectionTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabId = tab.getAttribute('data-tab');
+
+            projectionTabs.forEach(t => {
+                t.classList.remove('bg-gray-800', 'text-white', 'border-white');
+                t.classList.add('text-gray-400', 'border-transparent');
+            });
+
+            tab.classList.remove('text-gray-400', 'border-transparent');
+            tab.classList.add('bg-gray-800', 'text-white', 'border-white');
+
+            if (tabId === 'pca') {
+                pcaParams.classList.remove('hidden');
+                umapParams.classList.add('hidden');
+            } else {
+                pcaParams.classList.add('hidden');
+                umapParams.classList.remove('hidden');
+            }
+        });
+    });
+
+
+document.getElementById('umap-neighbors').addEventListener('input', function () {
+    document.getElementById('umap-neighbors-value').textContent = this.value;
+});
+
+document.getElementById('umap-min-dist').addEventListener('input', function () {
+    document.getElementById('umap-min-dist-value').textContent = this.value;
 });
