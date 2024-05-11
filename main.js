@@ -2,7 +2,7 @@ import './style.css';
 import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
-import { parseJsonFile, fetchJsonData, validateJsonData, displayError, jsonDataContainsEmbeddings } from './utils.js';
+import { Data } from './data.js';
 import { manageOpenAIApiKey, Embedding } from "./embedding.js";
 
 
@@ -76,8 +76,8 @@ function ui(divID) {
                 <!-- reset and submit buttons -->
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="data-reset" class="rounded-md border border-white bg-red-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
-                        <button id="data-submit" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load</button>
+                        <button id="reset-data" class="rounded-md border border-white bg-red-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
+                        <button id="submit-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load</button>
                     </div>
                 </div>
             </div>
@@ -89,13 +89,13 @@ function ui(divID) {
         
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
                 <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
-                    <label for="base-url" class="block font-medium text-sm text-white">Base URL</label>
-                    <input type="url" id="base-url" name="base-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1" required>
+                    <label for="embed-base-url" class="block font-medium text-sm text-white">Base URL</label>
+                    <input type="url" id="embed-base-url" name="embed-base-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1" required>
                 </div>
         
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
-                    <label for="api-key" class="block font-medium text-sm text-white">API key</label>
-                    <input type="password" id="api-key" name="api-key" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" required>
+                    <label for="embed-api-key" class="block font-medium text-sm text-white">API key</label>
+                    <input type="password" id="embed-api-key" name="embed-api-key" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" required>
                 </div>
         
                 <div id="api-key-message-container"></div>
@@ -115,20 +115,20 @@ function ui(divID) {
             
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
                 <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
-                    <label for="model" class="block font-medium text-sm text-white">Model</label>
-                    <select id="model" name="model" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" required>
+                    <label for="embed-model" class="block font-medium text-sm text-white">Model</label>
+                    <select id="embed-model" name="embed-model" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" required>
                         <option value="" disabled selected>Set URL/API to view models</option>
                     </select>
                 </div>
                 
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
-                    <label for="dimension" class="block font-medium text-sm text-white">Dimension: <span id="dimension-output" class="text-white">0</span></label>
-                    <input type="range" id="dimension" name="dimension" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" min="0" max="0" value="0" disabled>
+                    <label for="embed-dimension" class="block font-medium text-sm text-white">Dimension: <span id="embed-dimension-output" class="text-white">0</span></label>
+                    <input type="range" id="embed-dimension" name="embed-dimension" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" min="0" max="0" value="0" disabled>
                 </div>
                 
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="submit-model" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Embed data</button>
+                        <button id="submit-embed-model" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Embed data</button>
                     </div>
                 </div>
             </div>
@@ -269,7 +269,7 @@ function ui(divID) {
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="data-download" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download embedded data</button>
+                        <button id="download-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download embedded data</button>
                     </div>
                 </div>
             </div>
@@ -282,30 +282,29 @@ function ui(divID) {
 
 ui('app');
 
-// Embedding class
-let embedding;
 
 // Data items
 const dataUpload = document.getElementById('data-upload');
 const dataUrl = document.getElementById('data-url');
 const dataErrorMessageContainer = document.getElementById('data-error-message-container');
-const dataSubmitButton = document.getElementById('data-submit');
-const dataResetButton = document.getElementById('data-reset');
-const dataDownloadButton = document.getElementById('data-download');
+const dataSubmitButton = document.getElementById('submit-data');
+const dataResetButton = document.getElementById('reset-data');
+const dataDownloadButton = document.getElementById('download-data');
 
-let fileName;
 let data;
 
 // Embedding model configuration
-const baseURLInput = document.getElementById('base-url');
-const apiKeyInput = document.getElementById('api-key');
+const embedBaseURLInput = document.getElementById('embed-base-url');
+const embedApiKeyInput = document.getElementById('embed-api-key');
+const embedApiKeyMessageContainer = document.getElementById('api-key-message-container');
 const forgetApiKeyBtn = document.getElementById('forget-api-key');
 const submitApiKeyBtn = document.getElementById('submit-api-key');
-const apiKeyMessageContainer = document.getElementById('api-key-message-container');
-const modelsListDropdown = document.getElementById('model');
-const dimensionSlider = document.getElementById('dimension');
-const dimensionOutput = document.getElementById('dimension-output');
-const submitModelBtn = document.getElementById('submit-model');
+const embedModelsDropdown = document.getElementById('embed-model');
+const embedDimensionSlider = document.getElementById('embed-dimension');
+const embedDimensionOutput = document.getElementById('embed-dimension-output');
+const submitEmbedModelButton = document.getElementById('submit-embed-model');
+
+let embedding;
 
 // Projection method configuration
 const projectionTabs = document.querySelectorAll('[data-tab]');
@@ -325,44 +324,39 @@ dataSubmitButton.addEventListener('click', async () => {
         dataErrorMessageContainer.removeChild(dataErrorMessageContainer.firstChild);
     }
 
-    if (dataUpload.files.length > 0) {
-        try {
-            data = await parseJsonFile(dataUpload.files[0]);
-            validateJsonData(data, dataErrorMessageContainer);
-            fileName = dataUpload.files[0].name;
-        } catch (error) {
-            displayError('Error parsing JSON file or validation failed.', dataErrorMessageContainer)
-            console.error('Error parsing JSON file or validation failed:', error);
-        }
-    } else if (dataUrl.value) {
-        try {
-            updateAppUrl(dataUrl.value);
-            data = await fetchJsonData(dataUrl.value);
-            validateJsonData(data, dataErrorMessageContainer);
-            const urlParts = dataUrl.value.split('/');
-            fileName = urlParts[urlParts.length - 1];
-        } catch (error) {
-            displayError('Error fetching JSON data from URL or validation failed.', dataErrorMessageContainer);
-            console.error('Error fetching JSON data from URL or validation failed:', error);
-        }
+    if (dataUrl.value) {
+        dataUpload.value = '';
+        updateAppUrl(dataUrl.value);
+        data = await Data.instantiateFromUrl(dataUrl.value, dataErrorMessageContainer);
+    } else if (dataUpload.files.length > 0) {
+        data = await Data.instantiateFromFileUpload(dataUpload.files[0], dataErrorMessageContainer);
     }
 
     if (data) {
         dataDownloadButton.disabled = false;
 
         // Update embedding model panel
-        if (embedding && jsonDataContainsEmbeddings(data)) {
-            embedding.setModel(data.embeddingMethod);
-            modelsListDropdown.value = embedding.getModel();
-            embedding.setDimension(data.data[0].embedding.length);
-            const dimensionRangeValues = embedding.getModelDimensionRanges(embedding.getModel());
-            dimensionSlider.min = dimensionRangeValues[0];
-            dimensionSlider.max = dimensionRangeValues[1];
-            dimensionSlider.value = embedding.getDimension();
-            dimensionOutput.textContent = dimensionSlider.value;
-            submitModelBtn.disabled = false;
-        }
+        // if (embedding && jsonDataContainsEmbeddings(data)) {
+        //     embedding.setModel(data.embeddingMethod);
+        //     embedModelsDropdown.value = embedding.getModel();
+        //     embedding.setDimension(data.data[0].embedding.length);
+        //     const dimensionRangeValues = embedding.getModelDimensionRanges(embedding.getModel());
+        //     embedDimensionSlider.min = dimensionRangeValues[0];
+        //     embedDimensionSlider.max = dimensionRangeValues[1];
+        //     embedDimensionSlider.value = embedding.getDimension();
+        //     embedDimensionOutput.textContent = embedDimensionSlider.value;
+        //     submitEmbedModelButton.disabled = false;
+        // }
     }
+});
+
+
+dataUpload.addEventListener('change', () => {
+    dataUrl.value = '';
+    data = null;
+    dataDownloadButton.disabled = true;
+    window.history.replaceState(null, '', window.location.origin + window.location.pathname);
+    dataSubmitButton.click();
 });
 
 
@@ -375,7 +369,6 @@ dataResetButton.addEventListener('click', () => {
     dataUpload.value = '';
     dataUrl.value = '';
     data = null;
-    fileName = '';
     dataDownloadButton.disabled = true;
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
@@ -394,10 +387,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // Data download
 dataDownloadButton.addEventListener('click', () => {
-    const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+    const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data.data, null, 2))}`;
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute('href', dataStr);
-    downloadAnchorNode.setAttribute('download', fileName);
+    downloadAnchorNode.setAttribute('download', data.fileName);
     document.body.appendChild(downloadAnchorNode); // for Firefox
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -405,19 +398,19 @@ dataDownloadButton.addEventListener('click', () => {
 
 
 function displayDefaultModelsList() {
-    modelsListDropdown.innerHTML = '<option value="" disabled selected>Set URL/API to view models</option>';
-    dimensionSlider.min = 0;
-    dimensionSlider.max = 0;
-    dimensionSlider.value = 0;
-    dimensionSlider.disabled = true;
-    dimensionOutput.textContent = dimensionSlider.value;
-    submitModelBtn.disabled = true;
+    embedModelsDropdown.innerHTML = '<option value="" disabled selected>Set URL/API to view models</option>';
+    embedDimensionSlider.min = 0;
+    embedDimensionSlider.max = 0;
+    embedDimensionSlider.value = 0;
+    embedDimensionSlider.disabled = true;
+    embedDimensionOutput.textContent = embedDimensionSlider.value;
+    submitEmbedModelButton.disabled = true;
 }
 
 forgetApiKeyBtn.addEventListener('click', () => {
-    apiKeyInput.value = '';
-    while (apiKeyMessageContainer.firstChild) {
-        apiKeyMessageContainer.removeChild(apiKeyMessageContainer.firstChild);
+    embedApiKeyInput.value = '';
+    while (embedApiKeyMessageContainer.firstChild) {
+        embedApiKeyMessageContainer.removeChild(embedApiKeyMessageContainer.firstChild);
     }
     displayDefaultModelsList();
     manageOpenAIApiKey.deleteKey();
@@ -425,12 +418,12 @@ forgetApiKeyBtn.addEventListener('click', () => {
 
 
 submitApiKeyBtn.addEventListener('click', async () => {
-    const baseURL = baseURLInput.value;
-    const apiKey = apiKeyInput.value;
+    const baseURL = embedBaseURLInput.value;
+    const apiKey = embedApiKeyInput.value;
     const isValid = await manageOpenAIApiKey.validateOpenAIApiKey(baseURL, apiKey);
 
-    while (apiKeyMessageContainer.firstChild) {
-        apiKeyMessageContainer.removeChild(apiKeyMessageContainer.firstChild);
+    while (embedApiKeyMessageContainer.firstChild) {
+        embedApiKeyMessageContainer.removeChild(embedApiKeyMessageContainer.firstChild);
     }
 
     if (isValid) {  // API key is valid
@@ -440,25 +433,25 @@ submitApiKeyBtn.addEventListener('click', async () => {
         // Populate models list
         embedding = await Embedding.instantiate(baseURL, apiKey);
         const modelsList = embedding.getModelsList();
-        modelsListDropdown.innerHTML = '';
-        modelsListDropdown.disabled = false;
+        embedModelsDropdown.innerHTML = '';
+        embedModelsDropdown.disabled = false;
         modelsList.forEach((model, index) => {
             const option = document.createElement('option');
             option.value = model;
             option.text = model;
-            modelsListDropdown.appendChild(option);
+            embedModelsDropdown.appendChild(option);
 
             // Default to first model
             if (index === 0) {
-                modelsListDropdown.value = model;
+                embedModelsDropdown.value = model;
                 embedding.setModel(model);
                 const dimensionRangeValues = embedding.getModelDimensionRanges(model);
-                dimensionSlider.min = dimensionRangeValues[0];
-                dimensionSlider.max = dimensionRangeValues[1];
-                dimensionSlider.value = embedding.getModelDimensionDefaults(model);
-                dimensionSlider.disabled = false;
-                dimensionOutput.textContent = dimensionSlider.value;
-                submitModelBtn.disabled = false;
+                embedDimensionSlider.min = dimensionRangeValues[0];
+                embedDimensionSlider.max = dimensionRangeValues[1];
+                embedDimensionSlider.value = embedding.getModelDimensionDefaults(model);
+                embedDimensionSlider.disabled = false;
+                embedDimensionOutput.textContent = embedDimensionSlider.value;
+                submitEmbedModelButton.disabled = false;
             }
         });
 
@@ -466,7 +459,7 @@ submitApiKeyBtn.addEventListener('click', async () => {
         const successMessage = document.createElement('div');
         successMessage.classList.add('bg-green-50', 'border', 'border-green-300', 'text-green-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-2');
         successMessage.innerHTML = '<strong class="font-bold">Success!</strong> API key is valid.';
-        apiKeyMessageContainer.appendChild(successMessage);
+        embedApiKeyMessageContainer.appendChild(successMessage);
     } else {  // API key is invalid
         // Display default models list
         displayDefaultModelsList();
@@ -475,7 +468,7 @@ submitApiKeyBtn.addEventListener('click', async () => {
         const errorMessage = document.createElement('div');
         errorMessage.classList.add('bg-red-50', 'border', 'border-red-300', 'text-red-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-2');
         errorMessage.innerHTML = '<strong class="font-bold">Error:</strong> Invalid API key.';
-        apiKeyMessageContainer.appendChild(errorMessage);
+        embedApiKeyMessageContainer.appendChild(errorMessage);
     }
 });
 
@@ -483,47 +476,47 @@ submitApiKeyBtn.addEventListener('click', async () => {
 (async () => {
     const apiKey = manageOpenAIApiKey.getKey();
     if (apiKey) {
-        apiKeyInput.value = apiKey;
+        embedApiKeyInput.value = apiKey;
         await submitApiKeyBtn.click();
     }
 })();
 
 
-dimensionSlider.addEventListener('input', () => {
-    dimensionOutput.textContent = dimensionSlider.value;
+embedDimensionSlider.addEventListener('input', () => {
+    embedDimensionOutput.textContent = embedDimensionSlider.value;
 });
 
 
-submitModelBtn.addEventListener('click', () => {
-    const originalHTML = submitModelBtn.innerHTML;
-    submitModelBtn.innerHTML = `
+submitEmbedModelButton.addEventListener('click', () => {
+    const originalHTML = submitEmbedModelButton.innerHTML;
+    submitEmbedModelButton.innerHTML = `
                 <svg aria-hidden="true" role="status" class="inline w-4 h-4 mr-2 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
                     <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
                 </svg>
                 Embedding data...
             `;
-    submitModelBtn.disabled = true;
-    const model = modelsListDropdown.value;
+    submitEmbedModelButton.disabled = true;
+    const model = embedModelsDropdown.value;
     embedding.setModel(model);
-    embedding.setDimension(parseInt(dimensionSlider.value));
+    embedding.setDimension(parseInt(embedDimensionSlider.value));
     // calculate embeddings
     setTimeout(() => {
-        submitModelBtn.innerHTML = originalHTML;
-        submitModelBtn.disabled = false;
+        submitEmbedModelButton.innerHTML = originalHTML;
+        submitEmbedModelButton.disabled = false;
     }, 5000);
 });
 
 
-modelsListDropdown.addEventListener('change', () => {
-    const model = modelsListDropdown.value;
+embedModelsDropdown.addEventListener('change', () => {
+    const model = embedModelsDropdown.value;
     embedding.setModel(model);
     const dimensionRangeValues = embedding.getModelDimensionRanges(model);
-    dimensionSlider.min = dimensionRangeValues[0];
-    dimensionSlider.max = dimensionRangeValues[1];
-    dimensionSlider.value = embedding.getModelDimensionDefaults(model);
-    dimensionOutput.textContent = dimensionSlider.value;
-    submitModelBtn.disabled = false;
+    embedDimensionSlider.min = dimensionRangeValues[0];
+    embedDimensionSlider.max = dimensionRangeValues[1];
+    embedDimensionSlider.value = embedding.getModelDimensionDefaults(model);
+    embedDimensionOutput.textContent = embedDimensionSlider.value;
+    submitEmbedModelButton.disabled = false;
 });
 
 
