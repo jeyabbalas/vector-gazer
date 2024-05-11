@@ -2,7 +2,7 @@ import './style.css';
 import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
-import { parseJsonFile, fetchJsonData, validateJsonData, jsonDataContainsEmbeddings } from './utils.js';
+import { parseJsonFile, fetchJsonData, validateJsonData, displayError, jsonDataContainsEmbeddings } from './utils.js';
 import { manageOpenAIApiKey, Embedding } from "./embedding.js";
 
 
@@ -39,12 +39,12 @@ function ui(divID) {
 {
     'data': [
         {
-            'text': ' (required) A string representing the text to be embedded',
-            'label': '(optional) A label string displayed in scatter plot for the text item',
-            'embedding': [(optional) An array of floats embedding, if pre-computed, otherwise leave out]
+            'text': ' (Required) A string representing the text to be embedded',
+            'label': '(Optional) A concise string representing the text, to be displayed in the scatter plot for the text item',
+            'embedding': [(Optional) An array of floats embedding, if pre-computed]
         }
     ],
-    'embeddingMethod': 'An optional string describing the embedding method if embeddings are included'
+    'embeddingMethod': '(Optional) A string describing the embedding method in the API. Required if embeddings are included in data.'
 }">
             <h2 class="absolute transform left-4 -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Data</h2>
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
@@ -76,8 +76,8 @@ function ui(divID) {
                 <!-- reset and submit buttons -->
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="reset-data" class="rounded-md border border-white bg-red-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
-                        <button id="submit-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load</button>
+                        <button id="data-reset" class="rounded-md border border-white bg-red-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
+                        <button id="data-submit" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-1.5 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load</button>
                     </div>
                 </div>
             </div>
@@ -136,14 +136,14 @@ function ui(divID) {
     </div>
 
     <!-- Vertical line between left panel and scatter plot -->
-    <div class="w-px bg-white h-screen"></div>
+    <div class="w-px bg-white min-h-screen"></div>
 
     <!-- Scatter plot -->
     <div id="scatter-plot" class="w-2/3 p-4 bg-black flex flex-col h-full">
     </div>
 
     <!-- Vertical line between scatter plot and right Panel -->
-    <div class="w-px bg-white h-screen"></div>
+    <div class="w-px bg-white min-h-screen"></div>
 
     <!-- Right panel: projection method, query, and download data -->
     <div class="w-3/12 bg-black p-4 mt-5 flex flex-col h-full">
@@ -171,13 +171,13 @@ function ui(divID) {
                     <div id="pca-params">
                         <!-- PCA parameters -->
                         <!-- Dimension -->
-                        <div class="flex items-center justify-start mb-2">
+                         <div class="flex items-center justify-start mb-2">
                             <label for="pca-dimension" class="text-sm font-medium text-white mr-2">Dimension:</label>
                             <div class="inline-flex items-center space-x-2">
                                 <span class="text-sm text-white">2D</span>
                                 <div class="relative inline-block w-12 align-middle select-none">
-                                    <input type="checkbox" id="pca-dimension" class="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 checked:bg-gray-500" checked/>
-                                    <label for="pca-dimension" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
+                                    <input type="checkbox" id="pca-dimension" class="absolute block w-6 h-6 rounded-full bg-gray-500 border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out checked:translate-x-6 checked:bg-gray-700" checked />
+                                    <label for="pca-dimension" class="block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
                                 </div>
                                 <span class="text-sm text-white">3D</span>
                             </div>
@@ -196,8 +196,8 @@ function ui(divID) {
                             <div class="inline-flex items-center space-x-2">
                                 <span class="text-sm text-white">2D</span>
                                 <div class="relative inline-block w-12 align-middle select-none">
-                                    <input type="checkbox" id="umap-dimension" class="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 checked:bg-gray-500" checked/>
-                                    <label for="umap-dimension" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
+                                    <input type="checkbox" id="umap-dimension" class="absolute block w-6 h-6 rounded-full bg-gray-500 border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out checked:translate-x-6 checked:bg-gray-700" checked />
+                                    <label for="umap-dimension" class="block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
                                 </div>
                                 <span class="text-sm text-white">3D</span>
                             </div>
@@ -218,7 +218,7 @@ function ui(divID) {
                         <!-- Minimum distance -->
                         <div class="mb-2">
                             <label for="umap-min-dist" class="block text-sm font-medium text-white">Minimum distance: <span id="umap-min-dist-value" class="text-white">0.1</span></label>
-                            <input type="range" id="umap-min-dist" name="umap-min-dist" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="0.001" max="0.501" step="0.010" value="0.1">
+                            <input type="range" id="umap-min-dist" name="umap-min-dist" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="0.001" max="0.5" step="0.001" value="0.1">
                         </div>
                         
                         <!-- Spread -->
@@ -241,17 +241,23 @@ function ui(divID) {
         <!-- Query -->
         <div id="query-panel" class="relative py-2"> 
             <h2 class="absolute left-4 transform -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Query</h2>
-            <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
+            <div class="rounded-md border border-white mb-4 p-2 flex flex-col pt-6"> 
                 <!-- Query input -->
-                <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
+                <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 mb-2 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
                     <label for="query" class="block font-medium text-sm text-white">Query text</label>
-                    <textarea id="query" name="query" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0 resize-y" rows="15" required></textarea>
+                    <textarea id="query" name="query" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0 resize-y" rows="10" required></textarea>
+                </div>
+                
+                <!-- Nearest neighbors -->
+                <div class="mb-2">
+                    <label for="neighbors" class="block text-sm font-medium text-white">Number of nearest neighbors: <span id="neighbors-value" class="text-white">5</span></label>
+                    <input type="range" id="neighbors" name="neighbors" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="1" max="100" value="5">
                 </div>
                 
                 <!-- Project query button -->
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Project query</button>
+                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Project query</button>
                     </div>
                 </div>
             </div>
@@ -263,7 +269,7 @@ function ui(divID) {
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="download-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download embedded data</button>
+                        <button id="data-download" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download embedded data</button>
                     </div>
                 </div>
             </div>
@@ -279,16 +285,18 @@ ui('app');
 // Embedding class
 let embedding;
 
-// Load data
+// Data items
 const dataUpload = document.getElementById('data-upload');
 const dataUrl = document.getElementById('data-url');
-const dataErrorContainer = document.getElementById('data-error-message-container');
-const submitDataBtn = document.getElementById('submit-data');
-const resetDataBtn = document.getElementById('reset-data');
+const dataErrorMessageContainer = document.getElementById('data-error-message-container');
+const dataSubmitButton = document.getElementById('data-submit');
+const dataResetButton = document.getElementById('data-reset');
+const dataDownloadButton = document.getElementById('data-download');
 
+let fileName;
 let data;
 
-// Check embedding model configuration
+// Embedding model configuration
 const baseURLInput = document.getElementById('base-url');
 const apiKeyInput = document.getElementById('api-key');
 const forgetApiKeyBtn = document.getElementById('forget-api-key');
@@ -299,10 +307,11 @@ const dimensionSlider = document.getElementById('dimension');
 const dimensionOutput = document.getElementById('dimension-output');
 const submitModelBtn = document.getElementById('submit-model');
 
-// Projection method selection
+// Projection method configuration
 const projectionTabs = document.querySelectorAll('[data-tab]');
 const pcaParams = document.getElementById('pca-params');
 const umapParams = document.getElementById('umap-params');
+
 
 const updateAppUrl = (url) => {
     const newUrl = `${window.location.origin}${window.location.pathname}?dataUrl=${encodeURIComponent(url)}`;
@@ -311,33 +320,38 @@ const updateAppUrl = (url) => {
 
 
 // Data submit
-submitDataBtn.addEventListener('click', async () => {
-    while (dataErrorContainer.firstChild) {
-        dataErrorContainer.removeChild(dataErrorContainer.firstChild);
+dataSubmitButton.addEventListener('click', async () => {
+    while (dataErrorMessageContainer.firstChild) {
+        dataErrorMessageContainer.removeChild(dataErrorMessageContainer.firstChild);
     }
 
     if (dataUpload.files.length > 0) {
         try {
             data = await parseJsonFile(dataUpload.files[0]);
-            validateJsonData(data, dataErrorContainer);
+            validateJsonData(data, dataErrorMessageContainer);
+            fileName = dataUpload.files[0].name;
         } catch (error) {
+            displayError('Error parsing JSON file or validation failed.', dataErrorMessageContainer)
             console.error('Error parsing JSON file or validation failed:', error);
         }
     } else if (dataUrl.value) {
         try {
             updateAppUrl(dataUrl.value);
             data = await fetchJsonData(dataUrl.value);
-            validateJsonData(data, dataErrorContainer);
+            validateJsonData(data, dataErrorMessageContainer);
+            const urlParts = dataUrl.value.split('/');
+            fileName = urlParts[urlParts.length - 1];
         } catch (error) {
+            displayError('Error fetching JSON data from URL or validation failed.', dataErrorMessageContainer);
             console.error('Error fetching JSON data from URL or validation failed:', error);
         }
     }
 
-    if (data && embedding) {
-        embedding.setData(data);
+    if (data) {
+        dataDownloadButton.disabled = false;
 
         // Update embedding model panel
-        if (jsonDataContainsEmbeddings(data)) {
+        if (embedding && jsonDataContainsEmbeddings(data)) {
             embedding.setModel(data.embeddingMethod);
             modelsListDropdown.value = embedding.getModel();
             embedding.setDimension(data.data[0].embedding.length);
@@ -353,21 +367,40 @@ submitDataBtn.addEventListener('click', async () => {
 
 
 // Data reset
-resetDataBtn.addEventListener('click', () => {
+dataResetButton.addEventListener('click', () => {
+    while (dataErrorMessageContainer.firstChild) {
+        dataErrorMessageContainer.removeChild(dataErrorMessageContainer.firstChild);
+    }
+
     dataUpload.value = '';
     dataUrl.value = '';
     data = null;
+    fileName = '';
+    dataDownloadButton.disabled = true;
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
 
 
+// App loaded with dataUrl parameter
 window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dataUrlParam = urlParams.get('dataUrl');
     if (dataUrlParam) {
         dataUrl.value = dataUrlParam;
-        await submitDataBtn.click();
+        await dataSubmitButton.click();
     }
+});
+
+
+// Data download
+dataDownloadButton.addEventListener('click', () => {
+    const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute('href', dataStr);
+    downloadAnchorNode.setAttribute('download', fileName);
+    document.body.appendChild(downloadAnchorNode); // for Firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
 });
 
 

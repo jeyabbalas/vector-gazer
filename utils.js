@@ -141,5 +141,6 @@ export {
     parseJsonFile,
     fetchJsonData,
     validateJsonData,
+    displayError,
     jsonDataContainsEmbeddings
 };
