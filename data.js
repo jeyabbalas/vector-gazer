@@ -30,8 +30,20 @@ class Data {
         }
     }
 
-    dataContainsEmbeddings() {
+    containsEmbeddings() {
         return this.data.data[0].hasOwnProperty('embedding')
+    }
+
+    containsLabels() {
+        return this.data.data[0].hasOwnProperty('label')
+    }
+
+    getEmbeddingMethod() {
+        return this.data.embeddingMethod;
+    }
+
+    getEmbeddingDimension() {
+        return this.data.data[0].embedding.length;
     }
 
     /**

@@ -4,6 +4,7 @@ import githubLogo from '/github.svg';
 
 import { Data } from './data.js';
 import { manageOpenAIApiKey, Embedding } from "./embedding.js";
+import { Projector } from "./projector.js";
 
 
 function ui(divID) {
@@ -147,7 +148,7 @@ function ui(divID) {
 
     <!-- Right panel: projection method, query, and download data -->
     <div class="w-3/12 bg-black p-4 mt-5 flex flex-col h-full">
-        <!-- Projection method selection -->
+        <!-- Projector method selection -->
         <div id="projection-panel" class="relative py-2"> 
             <h2 class="absolute left-4 transform -translate-y-1/2 bg-black px-2 font-bold text-white whitespace-nowrap">Projection method</h2>
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6">
@@ -283,7 +284,7 @@ function ui(divID) {
 ui('app');
 
 
-// Data items
+// Data setup
 const dataUpload = document.getElementById('data-upload');
 const dataUrl = document.getElementById('data-url');
 const dataErrorMessageContainer = document.getElementById('data-error-message-container');
@@ -306,7 +307,7 @@ const submitEmbedModelButton = document.getElementById('submit-embed-model');
 
 let embedding;
 
-// Projection method configuration
+// Projector method configuration
 const projectionTabs = document.querySelectorAll('[data-tab]');
 const pcaParams = document.getElementById('pca-params');
 const umapParams = document.getElementById('umap-params');
@@ -320,6 +321,9 @@ const updateAppUrl = (url) => {
 
 // Data submit
 dataSubmitButton.addEventListener('click', async () => {
+    data = null;
+    dataDownloadButton.disabled = true;
+
     while (dataErrorMessageContainer.firstChild) {
         dataErrorMessageContainer.removeChild(dataErrorMessageContainer.firstChild);
     }
@@ -335,26 +339,19 @@ dataSubmitButton.addEventListener('click', async () => {
     if (data) {
         dataDownloadButton.disabled = false;
 
-        // Update embedding model panel
-        // if (embedding && jsonDataContainsEmbeddings(data)) {
-        //     embedding.setModel(data.embeddingMethod);
-        //     embedModelsDropdown.value = embedding.getModel();
-        //     embedding.setDimension(data.data[0].embedding.length);
-        //     const dimensionRangeValues = embedding.getModelDimensionRanges(embedding.getModel());
-        //     embedDimensionSlider.min = dimensionRangeValues[0];
-        //     embedDimensionSlider.max = dimensionRangeValues[1];
-        //     embedDimensionSlider.value = embedding.getDimension();
-        //     embedDimensionOutput.textContent = embedDimensionSlider.value;
-        //     submitEmbedModelButton.disabled = false;
-        // }
+        if (embedding) {
+            submitEmbedModelButton.disabled = false;
+
+            if (data.containsEmbeddings()) {
+                setModelAndDimensionFromData();
+            }
+        }
     }
 });
 
 
 dataUpload.addEventListener('change', () => {
     dataUrl.value = '';
-    data = null;
-    dataDownloadButton.disabled = true;
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
     dataSubmitButton.click();
 });
@@ -391,40 +388,53 @@ dataDownloadButton.addEventListener('click', () => {
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute('href', dataStr);
     downloadAnchorNode.setAttribute('download', data.fileName);
-    document.body.appendChild(downloadAnchorNode); // for Firefox
+    document.body.appendChild(downloadAnchorNode);  // for Firefox
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
 });
 
 
-function displayDefaultModelsList() {
-    embedModelsDropdown.innerHTML = '<option value="" disabled selected>Set URL/API to view models</option>';
-    embedDimensionSlider.min = 0;
-    embedDimensionSlider.max = 0;
-    embedDimensionSlider.value = 0;
-    embedDimensionSlider.disabled = true;
+embedDimensionSlider.addEventListener('input', () => {
     embedDimensionOutput.textContent = embedDimensionSlider.value;
-    submitEmbedModelButton.disabled = true;
-}
+});
+
+
+const updateEmbeddingDimensionDisplay = (min, max, value, disabled) => {
+    embedDimensionSlider.min = min;
+    embedDimensionSlider.max = max;
+    embedDimensionSlider.value = value;
+    embedDimensionSlider.disabled = disabled;
+    embedDimensionOutput.textContent = value;
+};
+
+
+const displayDefaultModelsList = () => {
+    embedModelsDropdown.innerHTML = '<option value="" disabled selected>Set URL/API to view models</option>';
+    updateEmbeddingDimensionDisplay(0, 0, 0, true);
+};
+
 
 forgetApiKeyBtn.addEventListener('click', () => {
     embedApiKeyInput.value = '';
+
     while (embedApiKeyMessageContainer.firstChild) {
         embedApiKeyMessageContainer.removeChild(embedApiKeyMessageContainer.firstChild);
     }
+
     displayDefaultModelsList();
+    submitEmbedModelButton.disabled = true;
     manageOpenAIApiKey.deleteKey();
 });
 
 
 submitApiKeyBtn.addEventListener('click', async () => {
-    const baseURL = embedBaseURLInput.value;
-    const apiKey = embedApiKeyInput.value;
-    const isValid = await manageOpenAIApiKey.validateOpenAIApiKey(baseURL, apiKey);
-
     while (embedApiKeyMessageContainer.firstChild) {
         embedApiKeyMessageContainer.removeChild(embedApiKeyMessageContainer.firstChild);
     }
+
+    const baseURL = embedBaseURLInput.value;
+    const apiKey = embedApiKeyInput.value;
+    const isValid = await manageOpenAIApiKey.validateOpenAIApiKey(baseURL, apiKey);
 
     if (isValid) {  // API key is valid
         // Save the API key
@@ -446,14 +456,20 @@ submitApiKeyBtn.addEventListener('click', async () => {
                 embedModelsDropdown.value = model;
                 embedding.setModel(model);
                 const dimensionRangeValues = embedding.getModelDimensionRanges(model);
-                embedDimensionSlider.min = dimensionRangeValues[0];
-                embedDimensionSlider.max = dimensionRangeValues[1];
-                embedDimensionSlider.value = embedding.getModelDimensionDefaults(model);
-                embedDimensionSlider.disabled = false;
-                embedDimensionOutput.textContent = embedDimensionSlider.value;
-                submitEmbedModelButton.disabled = false;
+                updateEmbeddingDimensionDisplay(dimensionRangeValues[0], dimensionRangeValues[1],
+                    embedding.getModelDimensionDefaults(model), false);
+                embedding.setDimension(embedding.getModelDimensionDefaults(model));
             }
         });
+
+
+        if (data) {
+            submitEmbedModelButton.disabled = false;
+
+            if (data.containsEmbeddings()) {
+                setModelAndDimensionFromData();
+            }
+        }
 
         // Display success message
         const successMessage = document.createElement('div');
@@ -461,7 +477,6 @@ submitApiKeyBtn.addEventListener('click', async () => {
         successMessage.innerHTML = '<strong class="font-bold">Success!</strong> API key is valid.';
         embedApiKeyMessageContainer.appendChild(successMessage);
     } else {  // API key is invalid
-        // Display default models list
         displayDefaultModelsList();
 
         // Display error message
@@ -473,6 +488,19 @@ submitApiKeyBtn.addEventListener('click', async () => {
 });
 
 
+const setModelAndDimensionFromData = () => {
+    const embeddingMethod = data.getEmbeddingMethod();
+    if (embedding.getModelsList().includes(embeddingMethod)) {
+        embedModelsDropdown.value = embeddingMethod;
+        embedding.setModel(embeddingMethod);
+        const dimension = data.getEmbeddingDimension();
+        embedding.setDimension(dimension);
+        const dimensionRangeValues = embedding.getModelDimensionRanges(embeddingMethod);
+        updateEmbeddingDimensionDisplay(dimensionRangeValues[0], dimensionRangeValues[1], dimension, false);
+    }
+};
+
+
 (async () => {
     const apiKey = manageOpenAIApiKey.getKey();
     if (apiKey) {
@@ -482,12 +510,16 @@ submitApiKeyBtn.addEventListener('click', async () => {
 })();
 
 
-embedDimensionSlider.addEventListener('input', () => {
-    embedDimensionOutput.textContent = embedDimensionSlider.value;
+embedModelsDropdown.addEventListener('change', () => {
+    const model = embedModelsDropdown.value;
+    embedding.setModel(model);
+    const dimensionRangeValues = embedding.getModelDimensionRanges(model);
+    updateEmbeddingDimensionDisplay(dimensionRangeValues[0], dimensionRangeValues[1],
+        embedding.getModelDimensionDefaults(model), false);
 });
 
 
-submitEmbedModelButton.addEventListener('click', () => {
+submitEmbedModelButton.addEventListener('click', async () => {
     const originalHTML = submitEmbedModelButton.innerHTML;
     submitEmbedModelButton.innerHTML = `
                 <svg aria-hidden="true" role="status" class="inline w-4 h-4 mr-2 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -497,25 +529,14 @@ submitEmbedModelButton.addEventListener('click', () => {
                 Embedding data...
             `;
     submitEmbedModelButton.disabled = true;
-    const model = embedModelsDropdown.value;
-    embedding.setModel(model);
+
+    embedding.setModel(embedModelsDropdown.value);
     embedding.setDimension(parseInt(embedDimensionSlider.value));
-    // calculate embeddings
-    setTimeout(() => {
-        submitEmbedModelButton.innerHTML = originalHTML;
-        submitEmbedModelButton.disabled = false;
-    }, 5000);
-});
 
+    const embeddedTexts = await embedding.embed(data.data.data.map(item => item.text));
+    console.log(embeddedTexts);
 
-embedModelsDropdown.addEventListener('change', () => {
-    const model = embedModelsDropdown.value;
-    embedding.setModel(model);
-    const dimensionRangeValues = embedding.getModelDimensionRanges(model);
-    embedDimensionSlider.min = dimensionRangeValues[0];
-    embedDimensionSlider.max = dimensionRangeValues[1];
-    embedDimensionSlider.value = embedding.getModelDimensionDefaults(model);
-    embedDimensionOutput.textContent = embedDimensionSlider.value;
+    submitEmbedModelButton.innerHTML = originalHTML;
     submitEmbedModelButton.disabled = false;
 });
 

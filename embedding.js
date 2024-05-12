@@ -1,6 +1,4 @@
 import {OpenAI} from 'https://cdn.skypack.dev/openai@4.38.5?min';
-import {PCA} from 'https://esm.sh/ml-pca@4.1.1';
-import {UMAP} from 'https://esm.sh/umap-js@1.3.3';
 
 
 const manageOpenAIApiKey = {
@@ -40,10 +38,9 @@ const manageOpenAIApiKey = {
 
 class Embedding {
     constructor(openai, modelsList) {
-        // Embedding model
         this.openai = openai;
         this.modelsList = modelsList;
-        this.model = '';
+        this.model = null;
         this.modelDimensionRanges = {
             'text-embedding-ada-002': [1536, 1536],
             'text-embedding-3-small': [2, 1536],
@@ -54,14 +51,7 @@ class Embedding {
             'text-embedding-3-small': 1536,
             'text-embedding-3-large': 3072
         };
-        this.dimension = this.model === '' ? 0 : this.modelDimensionDefaults[this.model];
-
-        // Data
-        this.data = [];
-
-        // Projection method
-        this.projectionMethods = ['PCA', 'UMAP'];
-        this.projectionMethod = 'PCA';
+        this.dimension = this.model ? this.modelDimensionDefaults[this.model] : 0;
     }
 
     static async instantiate(baseURL, apiKey) {
@@ -70,20 +60,35 @@ class Embedding {
             apiKey: apiKey,
             dangerouslyAllowBrowser: true
         });
-        const modelsList = (await openai.models.list()).data.map((d) => d.id).filter((s) => s.includes("embedding")).sort();
+        const modelsList = (await openai.models.list()).data
+            .map((d) => d.id)
+            .filter((s) => s.includes("embedding"))
+            .sort();
+
         return new Embedding(openai, modelsList);
+    }
+
+    async embed(texts) {
+        const embedding = await this.openai.embeddings.create({
+            model: this.model,
+            input: texts,
+            dimensions: this.dimension,
+            encoding_format: "float"
+        });
+
+        return embedding.data.map((d) => d.embedding);
     }
 
     getModelsList() {
         return this.modelsList;
     }
 
-    setModel(model) {
-        this.model = model;
-    }
-
     getModel() {
         return this.model;
+    }
+
+    setModel(model) {
+        this.model = model;
     }
 
     getModelDimensionRanges(modelName) {
@@ -100,14 +105,6 @@ class Embedding {
 
     setDimension(dimension) {
         this.dimension = dimension;
-    }
-
-    getData() {
-        return this.data;
-    }
-
-    setData(data) {
-        this.data = data;
     }
 }
 
