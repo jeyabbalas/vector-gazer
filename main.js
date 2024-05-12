@@ -1,10 +1,12 @@
+import 'https://cdn.plot.ly/plotly-2.32.0.min.js';
+
 import './style.css';
 import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
-import { Data } from './data.js';
-import { manageOpenAIApiKey, Embedding } from "./embedding.js";
-import { Projector } from "./projector.js";
+import {Data} from './data.js';
+import {manageOpenAIApiKey, Embedding} from "./embedding.js";
+import {Projector} from "./projector.js";
 
 
 function ui(divID) {
@@ -124,7 +126,7 @@ function ui(divID) {
                 
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-white">
                     <label for="embed-dimension" class="block font-medium text-sm text-white">Dimension: <span id="embed-dimension-output" class="text-white">0</span></label>
-                    <input type="range" id="embed-dimension" name="embed-dimension" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-0" min="0" max="0" value="0" disabled>
+                    <input type="range" id="embed-dimension" name="embed-dimension" class="w-full h-2 rounded-lg cursor-pointer" min="0" max="0" value="0" disabled>
                 </div>
                 
                 <div class="py-1 mt-1">
@@ -140,7 +142,7 @@ function ui(divID) {
     <div class="w-px bg-white min-h-screen"></div>
 
     <!-- Scatter plot -->
-    <div id="scatter-plot" class="w-2/3 p-4 bg-black flex flex-col h-full">
+    <div id="scatter-plot" class="w-6/12 bg-black h-full">
     </div>
 
     <!-- Vertical line between scatter plot and right Panel -->
@@ -162,8 +164,8 @@ function ui(divID) {
                     </div>
                     <div class="hidden sm:block">
                         <nav class="flex space-x-2" aria-label="Tabs">
-                            <a href="#" class="bg-gray-800 text-white px-3 py-2 font-medium text-sm rounded-t-md border-b-2 border border-white hover:bg-gray-700" aria-current="page" data-tab="pca">PCA</a>
-                            <a href="#" class="text-gray-400 hover:text-white px-3 py-2 font-medium text-sm rounded-t-md border-b-2 border border-transparent hover:border-white hover:bg-gray-800" data-tab="umap">UMAP</a>
+                            <a href="#" class="bg-gray-800 text-white px-3 py-2 font-medium text-sm rounded-t-md border-b-2 border border-white hover:bg-gray-700" aria-current="page" data-projection-tab="pca">PCA (SVD)</a>
+                            <a href="#" class="text-gray-400 hover:text-white px-3 py-2 font-medium text-sm rounded-t-md border-b-2 border border-transparent hover:border-white hover:bg-gray-800" data-projection-tab="umap">UMAP</a>
                         </nav>
                     </div>
                 </div>
@@ -213,13 +215,13 @@ function ui(divID) {
                         <!-- Number of neighbors -->
                         <div class="mb-2">
                             <label for="umap-neighbors" class="block text-sm font-medium text-white">Number of neighbors: <span id="umap-neighbors-value" class="text-white">15</span></label>
-                            <input type="range" id="umap-neighbors" name="umap-neighbors" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="2" max="100" value="15">
+                            <input type="range" id="umap-neighbors" name="umap-neighbors" class="w-full h-2 rounded-lg cursor-pointer" min="2" max="100" value="15">
                         </div>
                         
                         <!-- Minimum distance -->
                         <div class="mb-2">
                             <label for="umap-min-dist" class="block text-sm font-medium text-white">Minimum distance: <span id="umap-min-dist-value" class="text-white">0.1</span></label>
-                            <input type="range" id="umap-min-dist" name="umap-min-dist" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="0.001" max="0.5" step="0.001" value="0.1">
+                            <input type="range" id="umap-min-dist" name="umap-min-dist" class="w-full h-2 rounded-lg cursor-pointer" min="0.001" max="0.5" step="0.001" value="0.1">
                         </div>
                         
                         <!-- Spread -->
@@ -233,7 +235,7 @@ function ui(divID) {
                 <!-- Project data button -->
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="project-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Project data</button>
+                        <button id="project-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Project data</button>
                     </div>
                 </div>
             </div>
@@ -251,14 +253,15 @@ function ui(divID) {
                 
                 <!-- Nearest neighbors -->
                 <div class="mb-2">
-                    <label for="neighbors" class="block text-sm font-medium text-white">Number of nearest neighbors: <span id="neighbors-value" class="text-white">5</span></label>
-                    <input type="range" id="neighbors" name="neighbors" class="w-full h-2 bg-gray-400 rounded-lg appearance-none cursor-pointer" min="1" max="100" value="5">
+                    <label for="query-neighbors" class="block text-sm font-medium text-white">Number of nearest neighbors: <span id="neighbors-value" class="text-white">5</span></label>
+                    <input type="range" id="query-neighbors" name="query-neighbors" class="w-full h-2 rounded-lg cursor-pointer" min="1" max="50" value="5">
                 </div>
                 
                 <!-- Project query button -->
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Project query</button>
+                        <button id="clear-query" class="rounded-md border border-white bg-red-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Clear</button>
+                        <button id="project-query" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" title="Upload data, configure API key, and embed data to enable this." disabled>Project query</button>
                     </div>
                 </div>
             </div>
@@ -270,7 +273,7 @@ function ui(divID) {
             <div class="rounded-md border border-white mb-4 p-2 flex flex-col items-center pt-6"> 
                 <div class="py-1 mt-1">
                     <div class="flex justify-center gap-2">
-                        <button id="download-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download embedded data</button>
+                        <button id="download-data" class="rounded-md border border-white bg-gray-800 text-sm text-white py-0.5 px-3 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white" disabled>Download data</button>
                     </div>
                 </div>
             </div>
@@ -308,9 +311,28 @@ const submitEmbedModelButton = document.getElementById('submit-embed-model');
 let embedding;
 
 // Projector method configuration
-const projectionTabs = document.querySelectorAll('[data-tab]');
-const pcaParams = document.getElementById('pca-params');
-const umapParams = document.getElementById('umap-params');
+const projectionTabs = document.querySelectorAll('[data-projection-tab]');
+const pcaParamsPanel = document.getElementById('pca-params');
+const umapParamsPanel = document.getElementById('umap-params');
+const pcaDimensionInput = document.getElementById('pca-dimension');
+const pcaExplainedVarianceValue = document.getElementById('pca-explained-variance-value');
+const umapDimensionInput = document.getElementById('umap-dimension');
+const umapEpochsInput = document.getElementById('umap-epochs');
+const umapNeighborsInput = document.getElementById('umap-neighbors');
+const umapNeighborsValue = document.getElementById('umap-neighbors-value');
+const umapMinDistInput = document.getElementById('umap-min-dist');
+const umapMinDistValue = document.getElementById('umap-min-dist-value');
+const umapSpreadInput = document.getElementById('umap-spread');
+const projectDataButton = document.getElementById('project-data');
+
+let projector;
+
+// Query setup
+const queryInput = document.getElementById('query');
+const neighborsInput = document.getElementById('query-neighbors');
+const neighborsValue = document.getElementById('neighbors-value');
+const projectQueryButton = document.getElementById('project-query');
+const clearQueryButton = document.getElementById('clear-query');
 
 
 const updateAppUrl = (url) => {
@@ -341,13 +363,32 @@ dataSubmitButton.addEventListener('click', async () => {
 
         if (embedding) {
             submitEmbedModelButton.disabled = false;
+        }
 
-            if (data.containsEmbeddings()) {
+        if (data.containsEmbeddings()) {
+            if (embedding) {
                 setModelAndDimensionFromData();
+                enableProjectQueryButton();
+            } else {
+                disableProjectQueryButton();
             }
+
+            projectDataButton.disabled = false;
+            projectDataButton.click();
         }
     }
 });
+
+
+const disableProjectQueryButton = () => {
+    projectQueryButton.disabled = true;
+    projectQueryButton.title = "Upload data, configure API key, and embed data to enable this.";
+};
+
+const enableProjectQueryButton = () => {
+    projectQueryButton.disabled = false;
+    projectQueryButton.title = "";
+}
 
 
 dataUpload.addEventListener('change', () => {
@@ -368,6 +409,8 @@ dataResetButton.addEventListener('click', () => {
     data = null;
     dataDownloadButton.disabled = true;
     submitEmbedModelButton.disabled = true;
+    projectDataButton.disabled = true;
+    projectQueryButton.disabled = true;
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
 
@@ -395,8 +438,8 @@ dataDownloadButton.addEventListener('click', () => {
 });
 
 
-embedDimensionSlider.addEventListener('input', () => {
-    embedDimensionOutput.textContent = embedDimensionSlider.value;
+embedDimensionSlider.addEventListener('input', function () {
+    embedDimensionOutput.textContent = this.value;
 });
 
 
@@ -469,6 +512,9 @@ submitApiKeyBtn.addEventListener('click', async () => {
 
             if (data.containsEmbeddings()) {
                 setModelAndDimensionFromData();
+                projectDataButton.disabled = false;
+                projectDataButton.click();
+                enableProjectQueryButton();
             }
         }
 
@@ -535,7 +581,7 @@ submitEmbedModelButton.addEventListener('click', async () => {
     embedding.setDimension(parseInt(embedDimensionSlider.value));
 
     // Calculate embeddings and insert them into data
-    const embeddedTexts = await embedding.embed(data.data.data.map(item => item.text));
+    const embeddedTexts = await embedding.embed(data.getTexts());
     data.data.embeddingMethod = embedding.getModel();
     embeddedTexts.forEach((embedding, index) => {
         data.data.data[index].embedding = embedding;
@@ -543,37 +589,153 @@ submitEmbedModelButton.addEventListener('click', async () => {
 
     submitEmbedModelButton.innerHTML = originalHTML;
     submitEmbedModelButton.disabled = false;
+
+    projectDataButton.disabled = false;
+    projectDataButton.click();
+    enableProjectQueryButton();
 });
 
 
 projectionTabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tabId = tab.getAttribute('data-tab');
+    tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabId = tab.getAttribute('data-projection-tab');
 
-            projectionTabs.forEach(t => {
-                t.classList.remove('bg-gray-800', 'text-white', 'border-white');
-                t.classList.add('text-gray-400', 'border-transparent');
-            });
-
-            tab.classList.remove('text-gray-400', 'border-transparent');
-            tab.classList.add('bg-gray-800', 'text-white', 'border-white');
-
-            if (tabId === 'pca') {
-                pcaParams.classList.remove('hidden');
-                umapParams.classList.add('hidden');
-            } else {
-                pcaParams.classList.add('hidden');
-                umapParams.classList.remove('hidden');
-            }
+        projectionTabs.forEach(t => {
+            t.classList.remove('bg-gray-800', 'text-white', 'border-white');
+            t.classList.add('text-gray-400', 'border-transparent');
         });
+
+        tab.classList.remove('text-gray-400', 'border-transparent');
+        tab.classList.add('bg-gray-800', 'text-white', 'border-white');
+
+        if (tabId === 'pca') {
+            pcaParamsPanel.classList.remove('hidden');
+            umapParamsPanel.classList.add('hidden');
+        } else {
+            pcaParamsPanel.classList.add('hidden');
+            umapParamsPanel.classList.remove('hidden');
+        }
+    });
+});
+
+
+umapNeighborsInput.addEventListener('input', function () {
+    umapNeighborsValue.textContent = this.value;
+});
+
+
+umapMinDistInput.addEventListener('input', function () {
+    umapMinDistValue.textContent = this.value;
+});
+
+
+neighborsInput.addEventListener('input', function () {
+    neighborsValue.textContent = this.value;
+});
+
+
+const instantiateProjector = () => {
+    const pcaParams = {
+        nComponents: pcaDimensionInput.checked ? 3 : 2
+    };
+
+    const umapParams = {
+        nEpochs: parseInt(umapEpochsInput.value),
+        nComponents: umapDimensionInput.checked ? 3 : 2,
+        nNeighbors: parseInt(umapNeighborsInput.value),
+        minDist: parseFloat(umapMinDistInput.value),
+        spread: parseFloat(umapSpreadInput.value)
+    };
+
+    return new Projector(pcaParams, umapParams);
+}
+
+
+const getActiveTabByVisibility = () => {
+    if (!pcaParamsPanel.classList.contains('hidden')) {
+        return 'pca';
+    } else if (!umapParamsPanel.classList.contains('hidden')) {
+        return 'umap';
+    } else {
+        return null;
+    }
+}
+
+
+const projectData = () => {
+    projector = instantiateProjector();
+
+    const projectionMethod = getActiveTabByVisibility();
+    const dimension = projectionMethod === 'umap' ? projector.umapParams.nComponents : projector.pcaParams.nComponents;
+    const projectedData = projectionMethod === 'umap' ? projector.fitUMAP(data.getEmbeddings()) : projector.fitPCA(data.getEmbeddings());
+
+    if (projectionMethod === 'pca') {
+        pcaExplainedVarianceValue.textContent = `${(projector.getPcaExplainedVariance() * 100.0).toFixed(2)}%`;
+    } else {
+        pcaExplainedVarianceValue.textContent = '0%';
+    }
+
+    const labels = data.containsLabels() ? data.getLabels() : data.getTexts();
+    plotData(projectedData, labels, dimension);
+};
+
+
+projectDataButton.addEventListener('click', () => {
+    const originalHTML = projectDataButton.innerHTML;
+    projectDataButton.innerHTML = `
+                <svg aria-hidden="true" role="status" class="inline w-4 h-4 mr-2 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                </svg>
+                Projecting data...
+            `;
+    projectDataButton.disabled = true;
+
+    projectData();
+
+    projectDataButton.innerHTML = originalHTML;
+    projectDataButton.disabled = false;
+});
+
+
+const plotData = (projectedData, labels, dimension) => {
+    const numPoints = projectedData.length;
+    const markerSize = Math.max(2, 20 - Math.log2(numPoints));
+
+    const trace = {
+        x: projectedData.map(item => item[0]),
+        y: projectedData.map(item => item[1]),
+        z: dimension === 3 ? projectedData.map(item => item[2]) : null,
+        text: labels,
+        mode: 'markers',
+        marker: {...Projector.plainMarkerStyle(numPoints, markerSize)},
+        hoverinfo: 'text',
+        type: dimension === 2 ? 'scatter' : 'scatter3d',
+        showlegend: false
+    };
+    projector.setTrace(trace);
+
+    Plotly.newPlot('scatter-plot', [trace], Projector.layout());
+    highlightMarkers([0, 1, 2])
+};
+
+
+const highlightMarkers = (indices) => {
+    const updatedMarker = {...projector.getTrace().marker};
+
+    updatedMarker.color = [...projector.getTrace().marker.color];
+    updatedMarker.symbol = [...projector.getTrace().marker.symbol];
+
+    indices.forEach(index => {
+        updatedMarker.color[index] = 'RGB(57, 255, 20)';
+        updatedMarker.symbol[index] = 'x';
     });
 
+    Plotly.restyle("scatter-plot", {marker: updatedMarker});
+};
 
-document.getElementById('umap-neighbors').addEventListener('input', function () {
-    document.getElementById('umap-neighbors-value').textContent = this.value;
-});
 
-document.getElementById('umap-min-dist').addEventListener('input', function () {
-    document.getElementById('umap-min-dist-value').textContent = this.value;
-});
+const resetMarkers = () => {
+    Plotly.restyle("scatter-plot", {marker: originalMarker});
+};

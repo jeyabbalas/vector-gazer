@@ -38,6 +38,18 @@ class Data {
         return this.data.data[0].hasOwnProperty('label')
     }
 
+    getEmbeddings() {
+        return this.data.data.map(item => item.embedding);
+    }
+
+    getLabels() {
+        return this.data.data.map(item => item.label);
+    }
+
+    getTexts() {
+        return this.data.data.map(item => item.text);
+    }
+
     getEmbeddingMethod() {
         return this.data.embeddingMethod;
     }
