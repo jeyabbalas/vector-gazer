@@ -367,6 +367,7 @@ dataResetButton.addEventListener('click', () => {
     dataUrl.value = '';
     data = null;
     dataDownloadButton.disabled = true;
+    submitEmbedModelButton.disabled = true;
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
 
@@ -533,8 +534,12 @@ submitEmbedModelButton.addEventListener('click', async () => {
     embedding.setModel(embedModelsDropdown.value);
     embedding.setDimension(parseInt(embedDimensionSlider.value));
 
+    // Calculate embeddings and insert them into data
     const embeddedTexts = await embedding.embed(data.data.data.map(item => item.text));
-    console.log(embeddedTexts);
+    data.data.embeddingMethod = embedding.getModel();
+    embeddedTexts.forEach((embedding, index) => {
+        data.data.data[index].embedding = embedding;
+    });
 
     submitEmbedModelButton.innerHTML = originalHTML;
     submitEmbedModelButton.disabled = false;
