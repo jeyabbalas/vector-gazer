@@ -346,12 +346,16 @@ const updateAppUrl = (url) => {
 
 // Data submit
 dataSubmitButton.addEventListener('click', async () => {
-    data = null;
-    dataDownloadButton.disabled = true;
-
     while (dataErrorMessageContainer.firstChild) {
         dataErrorMessageContainer.removeChild(dataErrorMessageContainer.firstChild);
     }
+
+    data = null;
+    dataDownloadButton.disabled = true;
+    submitEmbedModelButton.disabled = true;
+    projectDataButton.disabled = true;
+    projectQueryButton.disabled = true;
+    scatterPlotContainer.innerHTML = '';
 
     if (dataUrl.value) {
         dataUpload.value = '';
@@ -773,7 +777,7 @@ const plotQuery = (projectedQuery, label, neighborIndices, dimension) => {
     for (let i = 0; i < numRipples; i++) {
         const opacity = 0.95 - i * ((0.95 - initialOpacity) / numRipples);
         const size = initialSize + i * ((projector.getMarkerSize() - initialSize) / numRipples) * scaleFactor;
-        const conditionalLabel = i === 0 ? label : null;
+        const conditionalLabel = i === numRipples-1 ? label : null;
 
         rippleTraces.push({
             x: [projectedQuery[0]],
