@@ -355,6 +355,7 @@ dataSubmitButton.addEventListener('click', async () => {
     submitEmbedModelButton.disabled = true;
     projectDataButton.disabled = true;
     projectQueryButton.disabled = true;
+    pcaExplainedVarianceValue.textContent = '0%';
     scatterPlotContainer.innerHTML = '';
 
     if (dataUrl.value) {
@@ -418,6 +419,7 @@ dataResetButton.addEventListener('click', () => {
     submitEmbedModelButton.disabled = true;
     projectDataButton.disabled = true;
     projectQueryButton.disabled = true;
+    pcaExplainedVarianceValue.textContent = '0%';
     scatterPlotContainer.innerHTML = '';
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
