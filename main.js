@@ -756,6 +756,12 @@ const plotQuery = (projectedQuery, label, neighborIndices, dimension) => {
 
     resetMarkers();
 
+    // Hack for computationally inefficient umap.transform()
+    if (projectedQuery.length === 0) {
+        highlightMarkers(neighborIndices);
+        return;
+    }
+
     // Ripple traces
     const numRipples = 4;
     const initialOpacity = 0.45;
@@ -815,11 +821,8 @@ projectQueryButton.addEventListener('click', async () => {
     const nearestNeighborIndices = findIndicesOfNearestNeighbors(embeddedQuery[0], data.getEmbeddings(), numNeighbors);
 
     const projectionMethod = projector.getProjectionMethod();
-    console.log(projectionMethod);
-    console.log(projector.projectWithUMAP(embeddedQuery));
-    const projectedQuery = projectionMethod === 'umap' ? projector.projectWithUMAP(embeddedQuery)[0] : projector.projectWithPCA(embeddedQuery)[0];
+    let projectedQuery = projectionMethod === 'umap' ? projector.projectWithUMAP(embeddedQuery) : projector.projectWithPCA(embeddedQuery)[0];
     const dimension = projectionMethod === 'umap' ? projector.umapParams.nComponents : projector.pcaParams.nComponents;
-    console.log(dimension);
     plotQuery(projectedQuery, 'Query', nearestNeighborIndices, dimension);
 
     projectQueryButton.innerHTML = originalHTML;

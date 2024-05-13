@@ -63,8 +63,9 @@ class Projector {
         return this.umap.fit(data);
     }
 
-    projectWithUMAP(data) {
-        return this.umap.transform(data);
+    projectWithUMAP(data, neighbors) {
+        // return this.umap.transform(data);  // computationally inefficient
+        return [[]];  // Hack to avoid plotting query.
     }
 
     static plainMarkerStyle = (numMarkers, markerSize) => {
