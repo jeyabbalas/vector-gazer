@@ -5,7 +5,7 @@ import vectorGazerLogo from '/vector-gazer.svg';
 import githubLogo from '/github.svg';
 
 import {Data} from './data.js';
-import {manageOpenAIApiKey, Embedding} from "./embedding.js";
+import {Embedding, manageOpenAIApiKey} from "./embedding.js";
 import {Projector} from "./projector.js";
 
 
@@ -471,6 +471,7 @@ forgetApiKeyBtn.addEventListener('click', () => {
 
     displayDefaultModelsList();
     submitEmbedModelButton.disabled = true;
+    disableProjectQueryButton();
     manageOpenAIApiKey.deleteKey();
 });
 
@@ -680,6 +681,8 @@ const projectData = () => {
         pcaExplainedVarianceValue.textContent = '0%';
     }
 
+    projector.setProjectionMethod(projectionMethod);
+
     const labels = data.containsLabels() ? data.getLabels() : data.getTexts();
     plotData(projectedData, labels, dimension);
 };
@@ -762,13 +765,15 @@ const plotQuery = (projectedQuery, label, neighborIndices, dimension) => {
     const rippleTraces = [];
 
     for (let i = 0; i < numRipples; i++) {
-        const opacity = 0.95 - i*((0.95 - initialOpacity)/numRipples);
-        const size = initialSize + i*((projector.getMarkerSize() - initialSize)/numRipples) * scaleFactor;
+        const opacity = 0.95 - i * ((0.95 - initialOpacity) / numRipples);
+        const size = initialSize + i * ((projector.getMarkerSize() - initialSize) / numRipples) * scaleFactor;
+        const conditionalLabel = i === 0 ? label : null;
+
         rippleTraces.push({
             x: [projectedQuery[0]],
             y: [projectedQuery[1]],
             z: dimension === 3 ? [projectedQuery[2]] : null,
-            text: [label],
+            text: [conditionalLabel],
             mode: 'markers',
             marker: {
                 size: size,
@@ -807,7 +812,15 @@ projectQueryButton.addEventListener('click', async () => {
 
     const numNeighbors = parseInt(queryNeighborsInput.value);
     const embeddedQuery = await embedding.embed([query]);
-    plotQuery(projector.projectWithPCA(embeddedQuery)[0], 'Query', [0, 1, 2], projector.pcaParams.nComponents);
+    const nearestNeighborIndices = findIndicesOfNearestNeighbors(embeddedQuery[0], data.getEmbeddings(), numNeighbors);
+
+    const projectionMethod = projector.getProjectionMethod();
+    console.log(projectionMethod);
+    console.log(projector.projectWithUMAP(embeddedQuery));
+    const projectedQuery = projectionMethod === 'umap' ? projector.projectWithUMAP(embeddedQuery)[0] : projector.projectWithPCA(embeddedQuery)[0];
+    const dimension = projectionMethod === 'umap' ? projector.umapParams.nComponents : projector.pcaParams.nComponents;
+    console.log(dimension);
+    plotQuery(projectedQuery, 'Query', nearestNeighborIndices, dimension);
 
     projectQueryButton.innerHTML = originalHTML;
     projectQueryButton.disabled = false;
@@ -830,3 +843,39 @@ clearQueryButton.addEventListener('click', () => {
     clearQueryButton.disabled = false;
     projectQueryButton.disabled = false;
 });
+
+
+const cosineSimilarity = (vector, listOfVectors) => {
+    const dotProduct = (a, b) => a.map((x, i) => a[i] * b[i]).reduce((m, n) => m + n);
+    const magnitude = (v) => Math.sqrt(v.map((x, i) => v[i] * v[i]).reduce((m, n) => m + n));
+
+    if (!Array.isArray(listOfVectors) || listOfVectors.length === 0) {
+        throw new Error('The list of vectors must be a non-empty array.');
+    }
+
+    if (listOfVectors.some(v => v.length !== vector.length)) {
+        throw new Error('All vectors must be of equal length.');
+    }
+
+    const magnitudeA = magnitude(vector);
+
+    return listOfVectors.map(b => {
+        const prod = dotProduct(vector, b);
+        const magnitudeB = magnitude(b);
+
+        if (magnitudeA === 0 || magnitudeB === 0) {
+            throw new Error('Vectors must be non-zero.');
+        }
+
+        return prod / (magnitudeA * magnitudeB);
+    });
+}
+
+
+const findIndicesOfNearestNeighbors = (vector, listOfVectors, numNeighbors) => {
+    const similarities = cosineSimilarity(vector, listOfVectors);
+    return similarities.map((similarity, index) => ({similarity, index}))
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, numNeighbors)
+        .map(item => item.index);
+};

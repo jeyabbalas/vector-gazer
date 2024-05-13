@@ -16,6 +16,8 @@ function mulberry32(seed) {
 
 class Projector {
     constructor(pcaParams = {}, umapParams = {}) {
+        this.projectionMethod = null;
+
         // PCA
         const pcaDefaults = {
             nComponents: 3
@@ -110,6 +112,14 @@ class Projector {
 
     getMarkerSize() {
         return this.markerSize;
+    }
+
+    setProjectionMethod(projectionMethod) {
+        this.projectionMethod = projectionMethod;
+    }
+
+    getProjectionMethod() {
+        return this.projectionMethod;
     }
 }
 
