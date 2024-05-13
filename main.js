@@ -329,10 +329,13 @@ let projector;
 
 // Query setup
 const queryInput = document.getElementById('query');
-const neighborsInput = document.getElementById('query-neighbors');
-const neighborsValue = document.getElementById('neighbors-value');
+const queryNeighborsInput = document.getElementById('query-neighbors');
+const queryNeighborsValue = document.getElementById('neighbors-value');
 const projectQueryButton = document.getElementById('project-query');
 const clearQueryButton = document.getElementById('clear-query');
+
+// Scatter plot setup
+const scatterPlotContainer = document.getElementById('scatter-plot');
 
 
 const updateAppUrl = (url) => {
@@ -411,6 +414,7 @@ dataResetButton.addEventListener('click', () => {
     submitEmbedModelButton.disabled = true;
     projectDataButton.disabled = true;
     projectQueryButton.disabled = true;
+    scatterPlotContainer.innerHTML = '';
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
 });
 
@@ -630,8 +634,8 @@ umapMinDistInput.addEventListener('input', function () {
 });
 
 
-neighborsInput.addEventListener('input', function () {
-    neighborsValue.textContent = this.value;
+queryNeighborsInput.addEventListener('input', function () {
+    queryNeighborsValue.textContent = this.value;
 });
 
 
@@ -700,8 +704,7 @@ projectDataButton.addEventListener('click', () => {
 
 
 const plotData = (projectedData, labels, dimension) => {
-    const numPoints = projectedData.length;
-    const markerSize = Math.max(2, 20 - Math.log2(numPoints));
+    projector.setNumPoints(projectedData.length);
 
     const trace = {
         x: projectedData.map(item => item[0]),
@@ -709,7 +712,7 @@ const plotData = (projectedData, labels, dimension) => {
         z: dimension === 3 ? projectedData.map(item => item[2]) : null,
         text: labels,
         mode: 'markers',
-        marker: {...Projector.plainMarkerStyle(numPoints, markerSize)},
+        marker: {...Projector.plainMarkerStyle(projector.getNumPoints(), projector.getMarkerSize())},
         hoverinfo: 'text',
         type: dimension === 2 ? 'scatter' : 'scatter3d',
         showlegend: false
@@ -717,7 +720,6 @@ const plotData = (projectedData, labels, dimension) => {
     projector.setTrace(trace);
 
     Plotly.newPlot('scatter-plot', [trace], Projector.layout());
-    highlightMarkers([0, 1, 2])
 };
 
 
@@ -732,10 +734,99 @@ const highlightMarkers = (indices) => {
         updatedMarker.symbol[index] = 'x';
     });
 
-    Plotly.restyle("scatter-plot", {marker: updatedMarker});
+    Plotly.restyle("scatter-plot", {marker: updatedMarker}, [0]);
 };
 
 
 const resetMarkers = () => {
-    Plotly.restyle("scatter-plot", {marker: originalMarker});
+    Plotly.restyle("scatter-plot", {marker: Projector.plainMarkerStyle(projector.getNumPoints(), projector.getMarkerSize())});
 };
+
+
+const plotQuery = (projectedQuery, label, neighborIndices, dimension) => {
+    // Delete existing query traces and its neighbors
+    if (scatterPlotContainer.data.length > 1) {
+        for (let i = scatterPlotContainer.data.length - 1; i > 0; i--) {
+            Plotly.deleteTraces('scatter-plot', i);
+        }
+    }
+
+    resetMarkers();
+
+    // Ripple traces
+    const numRipples = 4;
+    const initialOpacity = 0.45;
+    const initialSize = projector.getMarkerSize() / 3;
+    const scaleFactor = dimension === 2 ? 2.5 : 1;
+
+    const rippleTraces = [];
+
+    for (let i = 0; i < numRipples; i++) {
+        const opacity = 0.95 - i*((0.95 - initialOpacity)/numRipples);
+        const size = initialSize + i*((projector.getMarkerSize() - initialSize)/numRipples) * scaleFactor;
+        rippleTraces.push({
+            x: [projectedQuery[0]],
+            y: [projectedQuery[1]],
+            z: dimension === 3 ? [projectedQuery[2]] : null,
+            text: [label],
+            mode: 'markers',
+            marker: {
+                size: size,
+                color: `RGBA(255, 105, 180, ${opacity})`,
+                symbol: 'circle'
+            },
+            hoverinfo: 'text',
+            type: dimension === 2 ? 'scatter' : 'scatter3d',
+            showlegend: false
+        });
+    }
+
+    Plotly.addTraces('scatter-plot', [...rippleTraces]);
+    highlightMarkers(neighborIndices);
+};
+
+
+projectQueryButton.addEventListener('click', async () => {
+    const query = queryInput.value;
+
+    if (!query) {
+        return;
+    }
+
+    projectQueryButton.disabled = true;
+    clearQueryButton.disabled = true;
+
+    const originalHTML = projectQueryButton.innerHTML;
+    projectQueryButton.innerHTML = `
+                <svg aria-hidden="true" role="status" class="inline w-4 h-4 mr-2 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                </svg>
+                Projecting query...
+            `;
+
+    const numNeighbors = parseInt(queryNeighborsInput.value);
+    const embeddedQuery = await embedding.embed([query]);
+    plotQuery(projector.projectWithPCA(embeddedQuery)[0], 'Query', [0, 1, 2], projector.pcaParams.nComponents);
+
+    projectQueryButton.innerHTML = originalHTML;
+    projectQueryButton.disabled = false;
+    clearQueryButton.disabled = false;
+});
+
+
+clearQueryButton.addEventListener('click', () => {
+    clearQueryButton.disabled = true;
+    projectQueryButton.disabled = true;
+
+    if (scatterPlotContainer.data.length > 1) {
+        for (let i = scatterPlotContainer.data.length - 1; i > 0; i--) {
+            Plotly.deleteTraces('scatter-plot', i);
+        }
+    }
+
+    resetMarkers();
+
+    clearQueryButton.disabled = false;
+    projectQueryButton.disabled = false;
+});

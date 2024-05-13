@@ -98,6 +98,19 @@ class Projector {
     getTrace() {
         return this.trace;
     }
+
+    getNumPoints() {
+        return this.numPoints;
+    }
+
+    setNumPoints(numPoints) {
+        this.numPoints = numPoints;
+        this.markerSize = Math.max(2, 20 - Math.log2(numPoints));
+    }
+
+    getMarkerSize() {
+        return this.markerSize;
+    }
 }
 
 
