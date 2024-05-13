@@ -50,6 +50,10 @@ class Data {
         return this.data.data.map(item => item.text);
     }
 
+    getData() {
+        return this.data.data;
+    }
+
     getEmbeddingMethod() {
         return this.data.embeddingMethod;
     }

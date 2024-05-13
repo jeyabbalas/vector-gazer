@@ -253,7 +253,7 @@ function ui(divID) {
                 
                 <!-- Nearest neighbors -->
                 <div class="mb-2">
-                    <label for="query-neighbors" class="block text-sm font-medium text-white">Number of nearest neighbors: <span id="neighbors-value" class="text-white">5</span></label>
+                    <label for="query-neighbors" class="block text-sm font-medium text-white">Number of nearest neighbors: <span id="query-neighbors-value" class="text-white">5</span></label>
                     <input type="range" id="query-neighbors" name="query-neighbors" class="w-full h-2 rounded-lg cursor-pointer" min="1" max="50" value="5">
                 </div>
                 
@@ -330,7 +330,7 @@ let projector;
 // Query setup
 const queryInput = document.getElementById('query');
 const queryNeighborsInput = document.getElementById('query-neighbors');
-const queryNeighborsValue = document.getElementById('neighbors-value');
+const queryNeighborsValue = document.getElementById('query-neighbors-value');
 const projectQueryButton = document.getElementById('project-query');
 const clearQueryButton = document.getElementById('clear-query');
 
@@ -354,7 +354,7 @@ dataSubmitButton.addEventListener('click', async () => {
     dataDownloadButton.disabled = true;
     submitEmbedModelButton.disabled = true;
     projectDataButton.disabled = true;
-    projectQueryButton.disabled = true;
+    disableProjectQueryButton();
     pcaExplainedVarianceValue.textContent = '0%';
     scatterPlotContainer.innerHTML = '';
 
@@ -396,6 +396,9 @@ const disableProjectQueryButton = () => {
 const enableProjectQueryButton = () => {
     projectQueryButton.disabled = false;
     projectQueryButton.title = "";
+    queryNeighborsInput.max = queryNeighborsInput.max > data.getData().length ? data.getData().length : queryNeighborsInput.max;
+    queryNeighborsInput.value = queryNeighborsInput.value > data.getData().length ? data.getData().length : queryNeighborsInput.value;
+    queryNeighborsValue.textContent = queryNeighborsInput.value;
 }
 
 
@@ -418,7 +421,7 @@ dataResetButton.addEventListener('click', () => {
     dataDownloadButton.disabled = true;
     submitEmbedModelButton.disabled = true;
     projectDataButton.disabled = true;
-    projectQueryButton.disabled = true;
+    disableProjectQueryButton();
     pcaExplainedVarianceValue.textContent = '0%';
     scatterPlotContainer.innerHTML = '';
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
